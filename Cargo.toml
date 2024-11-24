@@ -3,7 +3,7 @@ name = "github-stats-rs"
 version = "0.1.0"
 edition = "2021"
 
-[profile.realease]
+[profile.release]
 lto = "thin"
 
 [lib]
@@ -14,3 +14,7 @@ name = "github-stats-rs"
 path = "src/main.rs"
 
 [dependencies]
+confique = "0.3.0"
+dotenvy = "0.15.7"
+secrecy = { version = "0.10.3", features = ["serde"] }
+tracing = "0.1.40"
