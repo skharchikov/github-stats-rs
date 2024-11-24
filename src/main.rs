@@ -1,5 +1,5 @@
 use github_stats_rs::{
-    domain::{contribution_years, ContributionYears},
+    domain::{contribution_years, repos_overview, ContributionYears, ReposOverview},
     service::{Configuration, Telemetry},
 };
 use graphql_client::reqwest::post_graphql_blocking;
@@ -37,7 +37,19 @@ fn main() -> Result<(), anyhow::Error> {
     )
     .unwrap();
 
+    let variables_2 = repos_overview::Variables {
+        owned_cursor: None,
+        contributed_cursor: None,
+    };
+
+    let response_body_2 = post_graphql_blocking::<ReposOverview, _>(
+        &client,
+        "https://api.github.com/graphql",
+        variables_2,
+    );
+
     tracing::info!("{response_body:#?}");
+    tracing::info!("{response_body_2:#?}");
 
     Ok(())
 }
