@@ -1,5 +1,9 @@
+use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use github_stats_rs::{
-    domain::{contribution_years, repos_overview, ContributionYears, ReposOverview},
+    domain::{
+        contribution_years, contributions_by_year, repos_overview, ContributionYears,
+        ContributionsByYear, ReposOverview,
+    },
     service::{Configuration, Telemetry},
 };
 use graphql_client::reqwest::post_graphql_blocking;
@@ -48,8 +52,32 @@ fn main() -> Result<(), anyhow::Error> {
         variables_2,
     );
 
+    let current_year = Utc::now().year();
+    let beginning_of_year = NaiveDate::from_ymd(current_year, 1, 1).and_hms(0, 0, 0);
+    let next_year = NaiveDate::from_ymd(current_year + 1, 1, 1).and_hms(0, 0, 0);
+
+    // Convert NaiveDate to DateTime<Utc>
+    let beginning_of_year_utc: DateTime<Utc> = DateTime::from_utc(beginning_of_year, Utc);
+    let next_year_utc: DateTime<Utc> = DateTime::from_utc(next_year, Utc);
+
+    // Convert DateTime<Utc> to string
+    let beginning_of_year_str = beginning_of_year_utc.to_rfc3339();
+    let next_year_str = next_year_utc.to_rfc3339();
+
+    let variables_3 = contributions_by_year::Variables {
+        from: beginning_of_year_str,
+        to: next_year_str,
+    };
+
+    let response_body_3 = post_graphql_blocking::<ContributionsByYear, _>(
+        &client,
+        "https://api.github.com/graphql",
+        variables_3,
+    );
+
     tracing::info!("{response_body:#?}");
     tracing::info!("{response_body_2:#?}");
+    tracing::info!("{response_body_3:#?}");
 
     Ok(())
 }

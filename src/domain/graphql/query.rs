@@ -1,5 +1,7 @@
 use graphql_client::GraphQLQuery;
 
+type DateTime = String;
+
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "resources/graphql/schema.graphql",
@@ -15,3 +17,11 @@ pub struct ContributionYears;
     response_derives = "Debug"
 )]
 pub struct ReposOverview;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "resources/graphql/schema.graphql",
+    query_path = "resources/graphql/contributions_by_year.graphql",
+    response_derives = "Debug"
+)]
+pub struct ContributionsByYear;

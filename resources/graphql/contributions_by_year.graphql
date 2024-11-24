@@ -1,0 +1,12 @@
+query ContributionsByYear($from: DateTime!, $to: DateTime!) {
+    viewer {
+        contributionsCollection(
+            from: $from,
+            to: $to 
+        ) {
+            contributionCalendar {
+                totalContributions
+            }
+        }
+    }
+}
