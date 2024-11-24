@@ -1,0 +1,16 @@
+[package]
+name = "github-stats-rs"
+version = "0.1.0"
+edition = "2021"
+
+[profile.realease]
+lto = "thin"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "github-stats-rs"
+path = "src/main.rs"
+
+[dependencies]
