@@ -1,3 +1,7 @@
+mod telemetry;
+
+pub use telemetry::*;
+
 use confique::Config;
 use dotenvy::dotenv;
 use secrecy::SecretString;
