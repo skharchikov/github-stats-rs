@@ -8,7 +8,7 @@ pub struct Stats {
     languages: HashMap<String, String>,
     repos: Vec<String>,
     lines_changed: (i32, i32),
-    views: i32,
+    views: i64,
 }
 
 impl Stats {
@@ -20,7 +20,7 @@ impl Stats {
         languages: HashMap<String, String>,
         repos: Vec<String>,
         lines_changed: (i32, i32),
-        views: i32,
+        views: i64,
     ) -> Self {
         Self {
             name,
@@ -59,14 +59,14 @@ impl Stats {
     }
 
     pub fn repos(&self) -> &Vec<String> {
-        &self.repos.as_ref()
+        self.repos.as_ref()
     }
 
     pub fn lines_changed(&self) -> (i32, i32) {
         self.lines_changed
     }
 
-    pub fn views(&self) -> i32 {
+    pub fn views(&self) -> i64 {
         self.views
     }
 }
@@ -80,7 +80,7 @@ pub struct StatsBuilder {
     languages: Option<HashMap<String, String>>,
     repos: Option<Vec<String>>,
     lines_changed: Option<(i32, i32)>,
-    views: Option<i32>,
+    views: Option<i64>,
 }
 
 impl StatsBuilder {
@@ -132,7 +132,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn views(mut self, views: i32) -> Self {
+    pub fn views(mut self, views: i64) -> Self {
         self.views = Some(views);
         self
     }

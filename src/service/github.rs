@@ -5,7 +5,7 @@ use crate::{
     algebra::GithubExt,
     domain::{
         contribution_years, contributions_by_year, repos_overview, ContributionYears,
-        ContributionsByYear, ReposOverview, Stats,
+        ContributionsByYear, ReposOverview, Stats, ViewTraffic,
     },
 };
 
@@ -129,23 +129,31 @@ impl GithubExt for Github {
             .flat_map(|repos| &repos.nodes)
             .flatten()
             .flatten()
+            .map(|repo| repo.name_with_owner.clone())
             .collect::<Vec<_>>();
 
         let total_contributions = self.total_contributions()?;
+        let views = self.views(&repos)?;
 
         Ok(Stats::builder()
             .name(name)
             .total_contributions(total_contributions)
+            .views(views)
             .build())
     }
 
-    fn views(&self, stats: &Stats) -> Result<i64, anyhow::Error> {
+    fn views(&self, repos: &Vec<String>) -> Result<i64, anyhow::Error> {
         let mut views = 0;
-        // stats.repos().iter().fold(0i64, |acc, repo| {
-        //     let a = self
-        //         .client
-        //         .get(format!("{}/repos/{}/traffic/views", &self.url, repo));
-        // });
+
+        for repo in repos {
+            let response = self
+                .client
+                .get(format!("{}/repos/{}/traffic/views", &self.url, repo))
+                .send()?;
+            let json = response.json::<ViewTraffic>()?;
+            let sum: i64 = json.views().iter().map(|view| view.count()).sum();
+            views += sum;
+        }
         Ok(views)
     }
 
