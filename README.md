@@ -47,23 +47,26 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 
 ## Usage
 
-1. Set the required environment variables:
+1. Create a `.env` file with the following content:
     ```sh
-    export GITHUB_ACCESS_TOKEN=your_github_access_token
-    export TEMPLATE_FOLDER=path_to_template_folder
-    export OUTPUT_FOLDER=path_to_output_folder
-    export LOG_LEVEL=info
+    ACCESS_TOKEN=your_access_token
+    GITHUB_ACTOR=your_github_login
     ```
 
 2. Run the application:
     ```sh
-    cargo run --release
+    cargo run --release | bunyan
     ```
 
-## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License.
+3. To add your statistics to your GitHub Profile README, copy and paste the
+   following lines of code into your markdown content. Change the `username`
+   value to your GitHub username.
+   ```md
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master//resources/generated/overview.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/overview.svg#gh-light-mode-only)
+   ```
+   ```md
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/generated/languages.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats/master/resources/generated/languages.svg#gh-light-mode-only)
+   ```
