@@ -30,11 +30,14 @@ fn main() -> Result<(), anyhow::Error> {
     let github = Github::new(configuration.clone(), client);
     let total_contributions = github.total_contributions()?;
     let stats = github.get_stats()?;
+
+    // Generate the images
     let image_gen = ImageGen::new(
         configuration.template_folder().to_string(),
         configuration.output_folder().to_string(),
     );
     image_gen.generate_overview(&stats)?;
+    image_gen.generate_languages(&stats)?;
 
     tracing::info!("Total contributions: {}", total_contributions);
     Ok(())

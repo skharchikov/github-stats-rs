@@ -1,7 +1,5 @@
 use std::{collections::HashMap, fs};
 
-use regex::Regex;
-
 use crate::domain::Stats;
 
 pub struct ImageGen {
@@ -46,8 +44,47 @@ impl ImageGen {
 
     pub fn generate_languages(&self, stats: &Stats) -> Result<(), anyhow::Error> {
         let svg_content = fs::read_to_string(format!("{}/languages.svg", self.template_folder))?;
+        let mut progress = "".to_string();
+        let mut lang_list = "".to_string();
+        let mut tags_map = HashMap::new();
 
-        todo!()
+        for (language, data) in stats.languages() {
+            let progress_tmp = format!(
+                r#"<span style="background-color: {}; width: {}%;" class="progress-item"></span>"#,
+                data.color(),
+                data.proportion()
+            );
+
+            let lang_list_tmp = format!(
+                r#"<li style="animation-delay: 150ms;">
+<svg xmlns="http://www.w3.org/2000/svg" class="octicon" style="fill:{};"
+viewBox="0 0 16 16" version="1.1" width="16" height="16"><path
+fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+<span class="lang">{}</span>
+<span class="percent">{}%</span>
+</li>
+
+            "#,
+                data.color(),
+                language,
+                data.proportion()
+            );
+            progress.push_str(&progress_tmp);
+            lang_list.push_str(&lang_list_tmp);
+        }
+
+        tags_map.insert("progress".to_string(), progress);
+        tags_map.insert("lang_list".to_string(), lang_list);
+
+        fs::create_dir_all(&self.output_folder)?;
+        let modified_content = Self::replace_tags(svg_content, &tags_map)?;
+
+        fs::write(
+            format!("{}/languages.svg", self.output_folder),
+            modified_content,
+        )?;
+
+        Ok(())
     }
 
     fn replace_tags(

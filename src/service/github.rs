@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, NaiveDate, Utc};
 use graphql_client::reqwest::post_graphql_blocking;
 
@@ -5,7 +7,7 @@ use crate::{
     algebra::GithubExt,
     domain::{
         contribution_years, contributions_by_year, repos_overview, ContributionYears,
-        ContributionsByYear, ContributorActivity, ReposOverview, Stats, ViewTraffic,
+        ContributionsByYear, ContributorActivity, Language, ReposOverview, Stats, ViewTraffic,
     },
 };
 
@@ -145,6 +147,29 @@ impl GithubExt for Github {
             .map(|repo| repo.name_with_owner.clone())
             .collect::<Vec<_>>();
 
+        let languages = owned_repos
+            .iter()
+            .flat_map(|repos| &repos.nodes)
+            .flatten()
+            .flatten()
+            .filter_map(|nodes| nodes.languages.as_ref())
+            .filter_map(|languages| languages.edges.as_ref())
+            .flatten()
+            .flatten()
+            .map(|edge| {
+                Language::new(
+                    edge.node.name.clone(),
+                    edge.size,
+                    1,
+                    edge.node.color.clone().unwrap_or("#000000".to_string()),
+                    0.2,
+                )
+            })
+            .collect::<Vec<_>>()
+            .iter()
+            .map(|lang| (lang.name().to_string(), lang.clone()))
+            .collect::<HashMap<_, _>>();
+
         let total_contributions = self.total_contributions()?;
         let views = self.views(&repos)?;
         let lines_changed = self.lines_changed(&repos)?;
@@ -156,6 +181,7 @@ impl GithubExt for Github {
             .lines_changed(lines_changed)
             .repos(repos)
             .forks(forks)
+            .languages(languages)
             .build())
     }
 

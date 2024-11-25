@@ -5,7 +5,7 @@ pub struct Stats {
     stargazers: i32,
     forks: i64,
     total_contributions: i64,
-    languages: HashMap<String, String>,
+    languages: HashMap<String, Language>,
     repos: Vec<String>,
     lines_changed: (i64, i64),
     views: i64,
@@ -17,7 +17,7 @@ impl Stats {
         stargazers: i32,
         forks: i64,
         total_contributions: i64,
-        languages: HashMap<String, String>,
+        languages: HashMap<String, Language>,
         repos: Vec<String>,
         lines_changed: (i64, i64),
         views: i64,
@@ -54,7 +54,7 @@ impl Stats {
         self.total_contributions
     }
 
-    pub fn languages(&self) -> &HashMap<String, String> {
+    pub fn languages(&self) -> &HashMap<String, Language> {
         &self.languages
     }
 
@@ -77,7 +77,7 @@ pub struct StatsBuilder {
     stargazers: Option<i32>,
     forks: Option<i64>,
     total_contributions: Option<i64>,
-    languages: Option<HashMap<String, String>>,
+    languages: Option<HashMap<String, Language>>,
     repos: Option<Vec<String>>,
     lines_changed: Option<(i64, i64)>,
     views: Option<i64>,
@@ -117,7 +117,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn languages(mut self, languages: HashMap<String, String>) -> Self {
+    pub fn languages(mut self, languages: HashMap<String, Language>) -> Self {
         self.languages = Some(languages);
         self
     }
@@ -135,5 +135,38 @@ impl StatsBuilder {
     pub fn views(mut self, views: i64) -> Self {
         self.views = Some(views);
         self
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Language {
+    name: String,
+    size: i64,
+    occurrences: i64,
+    color: String,
+    proportion: f64,
+}
+
+impl Language {
+    pub fn new(name: String, size: i64, occurrences: i64, color: String, proportion: f64) -> Self {
+        Self {
+            name,
+            size,
+            occurrences,
+            color,
+            proportion,
+        }
+    }
+
+    pub fn color(&self) -> &str {
+        &self.color
+    }
+
+    pub fn proportion(&self) -> f64 {
+        self.proportion
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
