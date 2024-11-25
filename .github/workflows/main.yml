@@ -31,13 +31,13 @@ jobs:
 
       # Run the Rust application
       - name: Generate images
-        run: ./target/release/your_rust_application
+        run: ./target/release/github-stats-rs
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EXCLUDED: ${{ secrets.EXCLUDED }}
-          EXCLUDED_LANGS: ${{ secrets.EXCLUDED_LANGS }}
-          EXCLUDE_FORKED_REPOS: true
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # EXCLUDED: ${{ secrets.EXCLUDED }}
+          # EXCLUDED_LANGS: ${{ secrets.EXCLUDED_LANGS }}
+          # EXCLUDE_FORKED_REPOS: true
 
       # Commit all changed files to the repository
       - name: Commit to the repo
