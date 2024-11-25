@@ -31,15 +31,7 @@ impl ImageGen {
         let (added, removed) = stats.lines_changed();
         tags_map.insert("lines_changed".to_string(), format!("{}", added + removed));
         tags_map.insert("views".to_string(), stats.views().to_string());
-        tags_map.insert(
-            "repos".to_string(),
-            stats
-                .repos()
-                .iter()
-                .map(|repo| repo.to_string())
-                .collect::<Vec<String>>()
-                .join(", "),
-        );
+        tags_map.insert("repos".to_string(), stats.repos().iter().len().to_string());
 
         fs::create_dir_all(&self.output_folder)?;
         let modified_content = Self::replace_tags(svg_content, &tags_map)?;

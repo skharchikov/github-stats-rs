@@ -97,6 +97,7 @@ impl GithubExt for Github {
         let mut next_contrib = "";
 
         let mut repos: Vec<String> = vec![];
+        let mut forks = 0;
 
         let variables = repos_overview::Variables {
             owned_cursor: None,
@@ -117,7 +118,19 @@ impl GithubExt for Github {
         let contributed_repos = raw_results
             .data
             .as_ref()
-            .map(|data| &data.viewer.repositories_contributed_to);
+            .and_then(|data| data.viewer.repositories_contributed_to.nodes.as_ref())
+            .map(|nodes| {
+                nodes
+                    .iter()
+                    .filter(|opt| opt.is_some())
+                    .flatten()
+                    .collect::<Vec<_>>()
+            });
+
+        for repo in contributed_repos.iter().flatten() {
+            repos.push(repo.name_with_owner.clone());
+            forks += repo.fork_count;
+        }
 
         let owned_repos = raw_results
             .data
@@ -141,6 +154,7 @@ impl GithubExt for Github {
             .total_contributions(total_contributions)
             .views(views)
             .lines_changed(lines_changed)
+            .repos(repos)
             .build())
     }
 
