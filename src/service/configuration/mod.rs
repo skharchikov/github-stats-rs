@@ -16,7 +16,7 @@ pub struct Configuration {
     excluded_repos: String,
     #[config(env = "EXCLUDED_LANGS", default = "")]
     excluded_langs: String,
-    #[config(env = "EXCLUDE_FORKED_REPOS", default = false)]
+    #[config(env = "EXCLUDE_FORKED_REPOS", default = true)]
     exclude_forked_repos: bool,
     #[config(env = "TEMPLATE_FOLDER", default = "resources/templates")]
     template_folder: String,
