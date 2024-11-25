@@ -18,6 +18,10 @@ pub struct Configuration {
     excluded_langs: String,
     #[config(env = "EXCLUDE_FORKED_REPOS", default = false)]
     exclude_forked_repos: bool,
+    #[config(env = "TEMPLATE_FOLDER", default = "resources/templates")]
+    template_folder: String,
+    #[config(env = "OUTPUT_FOLDER", default = "resources/generated")]
+    output_folder: String,
 }
 
 impl Configuration {
@@ -51,5 +55,13 @@ impl Configuration {
             .env()
             .load()
             .expect("Failed to load configuration")
+    }
+
+    pub fn template_folder(&self) -> &str {
+        &self.template_folder
+    }
+
+    pub fn output_folder(&self) -> &str {
+        &self.output_folder
     }
 }

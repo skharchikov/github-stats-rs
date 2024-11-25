@@ -15,13 +15,14 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.93"
-chrono = "0.4.38"
+chrono = { version = "0.4.38", features = ["serde"] }
 confique = "0.3.0"
 dotenvy = "0.15.7"
 graphql_client = { version = "0.14.0", features = [
   "reqwest",
   "reqwest-blocking",
 ] }
+regex = "1.11.1"
 reqwest = { version = "0.11.27", features = ["json", "blocking"] }
 secrecy = { version = "0.10.3", features = ["serde"] }
 serde = { version = "1.0.215", features = ["derive"] }
