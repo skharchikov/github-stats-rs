@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 pub struct Stats {
     name: String,
-    stargazers: i32,
+    stargazers: i64,
     forks: i64,
     total_contributions: i64,
     languages: HashMap<String, Language>,
@@ -14,7 +14,7 @@ pub struct Stats {
 impl Stats {
     pub fn new(
         name: String,
-        stargazers: i32,
+        stargazers: i64,
         forks: i64,
         total_contributions: i64,
         languages: HashMap<String, Language>,
@@ -42,7 +42,7 @@ impl Stats {
         &self.name
     }
 
-    pub fn stargazers(&self) -> i32 {
+    pub fn stargazers(&self) -> i64 {
         self.stargazers
     }
 
@@ -74,7 +74,7 @@ impl Stats {
 #[derive(Default)]
 pub struct StatsBuilder {
     name: Option<String>,
-    stargazers: Option<i32>,
+    stargazers: Option<i64>,
     forks: Option<i64>,
     total_contributions: Option<i64>,
     languages: Option<HashMap<String, Language>>,
@@ -102,7 +102,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn stargazers(mut self, stargazers: i32) -> Self {
+    pub fn stargazers(mut self, stargazers: i64) -> Self {
         self.stargazers = Some(stargazers);
         self
     }

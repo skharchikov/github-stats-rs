@@ -100,6 +100,7 @@ impl GithubExt for Github {
 
         let mut repos: Vec<String> = vec![];
         let mut forks = 0;
+        let mut stargazers = 0;
 
         let variables = repos_overview::Variables {
             owned_cursor: None,
@@ -117,21 +118,58 @@ impl GithubExt for Github {
             .and_then(|data| data.viewer.name.clone())
             .unwrap_or("No Name".to_string());
 
-        let contributed_repos = raw_results
-            .data
-            .as_ref()
-            .and_then(|data| data.viewer.repositories_contributed_to.nodes.as_ref())
-            .map(|nodes| {
-                nodes
-                    .iter()
-                    .filter(|opt| opt.is_some())
-                    .flatten()
-                    .collect::<Vec<_>>()
-            });
+        let mut languages_contributed = HashMap::new();
 
-        for repo in contributed_repos.iter().flatten() {
-            repos.push(repo.name_with_owner.clone());
-            forks += repo.fork_count;
+        if self.configuration.exclude_forked_repos() {
+            // do nothing
+        } else {
+            let contributed_repos = raw_results
+                .data
+                .as_ref()
+                .and_then(|data| data.viewer.repositories_contributed_to.nodes.as_ref())
+                .map(|nodes| {
+                    nodes
+                        .iter()
+                        .filter(|opt| opt.is_some())
+                        .flatten()
+                        .collect::<Vec<_>>()
+                });
+
+            for repo in contributed_repos.iter().flatten() {
+                repos.push(repo.name_with_owner.clone());
+                forks += repo.fork_count;
+                stargazers += repo.stargazers.total_count;
+            }
+
+            languages_contributed = contributed_repos
+                .iter()
+                .flatten()
+                .filter_map(|repo| repo.languages.as_ref())
+                .filter_map(|languages| languages.edges.as_ref())
+                .flatten()
+                .flatten()
+                .map(|edge| {
+                    Language::new(
+                        edge.node.name.clone(),
+                        edge.size,
+                        1,
+                        edge.node.color.clone().unwrap_or("#000000".to_string()),
+                        0.0,
+                    )
+                })
+                .collect::<Vec<_>>()
+                .iter()
+                .fold(HashMap::new(), |mut acc, lang| {
+                    acc.entry(lang.name().to_string())
+                        .and_modify(|e: &mut Language| {
+                            let new_zise: i64 = e.size() + lang.size();
+                            let new_occurences: i64 = e.occurrences() + lang.occurrences();
+                            e.set_occurrences(new_occurences);
+                            e.set_size(new_zise);
+                        })
+                        .or_insert(lang.clone());
+                    acc
+                });
         }
 
         let owned_repos = raw_results
@@ -139,13 +177,16 @@ impl GithubExt for Github {
             .as_ref()
             .map(|data| &data.viewer.repositories);
 
-        let repos = owned_repos
+        for repo in owned_repos
             .iter()
             .flat_map(|repos| &repos.nodes)
             .flatten()
             .flatten()
-            .map(|repo| repo.name_with_owner.clone())
-            .collect::<Vec<_>>();
+        {
+            repos.push(repo.name_with_owner.clone());
+            forks += repo.fork_count;
+            stargazers += repo.stargazer_count;
+        }
 
         let mut languages = owned_repos
             .iter()
@@ -167,7 +208,7 @@ impl GithubExt for Github {
             })
             .collect::<Vec<_>>()
             .iter()
-            .fold(HashMap::new(), |mut acc, lang| {
+            .fold(languages_contributed, |mut acc, lang| {
                 acc.entry(lang.name().to_string())
                     .and_modify(|e: &mut Language| {
                         let new_zise: i64 = e.size() + lang.size();
@@ -194,6 +235,7 @@ impl GithubExt for Github {
             .lines_changed(lines_changed)
             .repos(repos)
             .forks(forks)
+            .stargazers(stargazers)
             .languages(languages)
             .build())
     }
