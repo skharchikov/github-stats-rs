@@ -169,4 +169,24 @@ impl Language {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn set_size(&mut self, size: i64) {
+        self.size = size;
+    }
+
+    pub fn set_occurrences(&mut self, occurrences: i64) {
+        self.occurrences = occurrences;
+    }
+
+    pub fn size(&self) -> i64 {
+        self.size
+    }
+
+    pub fn occurrences(&self) -> i64 {
+        self.occurrences
+    }
+
+    pub fn set_proportion(&mut self, proportion: f64) {
+        self.proportion = proportion;
+    }
 }

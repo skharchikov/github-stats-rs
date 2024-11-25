@@ -147,7 +147,7 @@ impl GithubExt for Github {
             .map(|repo| repo.name_with_owner.clone())
             .collect::<Vec<_>>();
 
-        let languages = owned_repos
+        let mut languages = owned_repos
             .iter()
             .flat_map(|repos| &repos.nodes)
             .flatten()
@@ -162,13 +162,26 @@ impl GithubExt for Github {
                     edge.size,
                     1,
                     edge.node.color.clone().unwrap_or("#000000".to_string()),
-                    0.2,
+                    0.0,
                 )
             })
             .collect::<Vec<_>>()
             .iter()
-            .map(|lang| (lang.name().to_string(), lang.clone()))
-            .collect::<HashMap<_, _>>();
+            .fold(HashMap::new(), |mut acc, lang| {
+                acc.entry(lang.name().to_string())
+                    .and_modify(|e: &mut Language| {
+                        let new_zise: i64 = e.size() + lang.size();
+                        let new_occurences: i64 = e.occurrences() + lang.occurrences();
+                        e.set_occurrences(new_occurences);
+                        e.set_size(new_zise);
+                    })
+                    .or_insert(lang.clone());
+                acc
+            });
+        let total_size = languages.values().map(|lang| lang.size()).sum::<i64>();
+        languages.iter_mut().for_each(|(_, lang)| {
+            lang.set_proportion(100f64 * lang.size() as f64 / total_size as f64);
+        });
 
         let total_contributions = self.total_contributions()?;
         let views = self.views(&repos)?;

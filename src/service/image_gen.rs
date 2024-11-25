@@ -48,11 +48,15 @@ impl ImageGen {
         let mut lang_list = "".to_string();
         let mut tags_map = HashMap::new();
 
-        for (language, data) in stats.languages() {
+        let mut sorted_languages = stats.languages().iter().collect::<Vec<_>>();
+        sorted_languages.sort_by(|a, b| a.1.size().cmp(&b.1.size()));
+
+        for (language, data) in sorted_languages.iter().rev() {
+            let proportion = format!("{:.2}", data.proportion());
             let progress_tmp = format!(
                 r#"<span style="background-color: {}; width: {}%;" class="progress-item"></span>"#,
                 data.color(),
-                data.proportion()
+                &proportion
             );
 
             let lang_list_tmp = format!(
@@ -67,7 +71,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
             "#,
                 data.color(),
                 language,
-                data.proportion()
+                &proportion
             );
             progress.push_str(&progress_tmp);
             lang_list.push_str(&lang_list_tmp);
