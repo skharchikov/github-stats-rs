@@ -51,7 +51,7 @@ impl ImageGen {
         let mut sorted_languages = stats.languages().iter().collect::<Vec<_>>();
         sorted_languages.sort_by(|a, b| a.1.size().cmp(&b.1.size()));
 
-        for (language, data) in sorted_languages.iter().rev() {
+        for (idx, (language, data)) in sorted_languages.iter().rev().enumerate() {
             let proportion = format!("{:.2}", data.proportion());
             let progress_tmp = format!(
                 r#"<span style="background-color: {}; width: {}%;" class="progress-item"></span>"#,
@@ -60,7 +60,7 @@ impl ImageGen {
             );
 
             let lang_list_tmp = format!(
-                r#"<li style="animation-delay: 150ms;">
+                r#"<li style="animation-delay: {}ms;">
 <svg xmlns="http://www.w3.org/2000/svg" class="octicon" style="fill:{};"
 viewBox="0 0 16 16" version="1.1" width="16" height="16"><path
 fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
@@ -69,6 +69,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 </li>
 
             "#,
+                150 * idx,
                 data.color(),
                 language,
                 &proportion
