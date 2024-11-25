@@ -5,7 +5,7 @@ use crate::{
     algebra::GithubExt,
     domain::{
         contribution_years, contributions_by_year, repos_overview, ContributionYears,
-        ContributionsByYear, ReposOverview, Stats, ViewTraffic,
+        ContributionsByYear, ContributorActivity, ReposOverview, Stats, ViewTraffic,
     },
 };
 
@@ -134,11 +134,13 @@ impl GithubExt for Github {
 
         let total_contributions = self.total_contributions()?;
         let views = self.views(&repos)?;
+        let lines_changed = self.lines_changed(&repos)?;
 
         Ok(Stats::builder()
             .name(name)
             .total_contributions(total_contributions)
             .views(views)
+            .lines_changed(lines_changed)
             .build())
     }
 
@@ -157,7 +159,38 @@ impl GithubExt for Github {
         Ok(views)
     }
 
-    fn lines_changes(&self) -> Result<(i64, i64), anyhow::Error> {
-        todo!()
+    fn lines_changed(&self, repos: &Vec<String>) -> Result<(i64, i64), anyhow::Error> {
+        let res = repos
+            .iter()
+            .map(|repo| -> Result<Vec<ContributorActivity>, reqwest::Error> {
+                let response = self
+                    .client
+                    .get(format!("{}/repos/{}/stats/contributors", &self.url, repo))
+                    .send()?;
+                let json = response.json::<Vec<ContributorActivity>>();
+                json
+            })
+            .filter_map(Result::ok)
+            .flatten()
+            .collect::<Vec<_>>()
+            .iter()
+            .fold((0, 0), |acc, activity| {
+                (
+                    acc.0
+                        + activity
+                            .weeks()
+                            .iter()
+                            .map(|week| week.added())
+                            .sum::<i64>(),
+                    acc.1
+                        + activity
+                            .weeks()
+                            .iter()
+                            .map(|week| week.deleted())
+                            .sum::<i64>(),
+                )
+            });
+
+        Ok(res)
     }
 }

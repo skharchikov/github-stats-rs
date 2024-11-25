@@ -7,7 +7,7 @@ pub struct Stats {
     total_contributions: i64,
     languages: HashMap<String, String>,
     repos: Vec<String>,
-    lines_changed: (i32, i32),
+    lines_changed: (i64, i64),
     views: i64,
 }
 
@@ -19,7 +19,7 @@ impl Stats {
         total_contributions: i64,
         languages: HashMap<String, String>,
         repos: Vec<String>,
-        lines_changed: (i32, i32),
+        lines_changed: (i64, i64),
         views: i64,
     ) -> Self {
         Self {
@@ -62,7 +62,7 @@ impl Stats {
         self.repos.as_ref()
     }
 
-    pub fn lines_changed(&self) -> (i32, i32) {
+    pub fn lines_changed(&self) -> (i64, i64) {
         self.lines_changed
     }
 
@@ -79,7 +79,7 @@ pub struct StatsBuilder {
     total_contributions: Option<i64>,
     languages: Option<HashMap<String, String>>,
     repos: Option<Vec<String>>,
-    lines_changed: Option<(i32, i32)>,
+    lines_changed: Option<(i64, i64)>,
     views: Option<i64>,
 }
 
@@ -127,7 +127,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn lines_changed(mut self, lines_changed: (i32, i32)) -> Self {
+    pub fn lines_changed(mut self, lines_changed: (i64, i64)) -> Self {
         self.lines_changed = Some(lines_changed);
         self
     }
