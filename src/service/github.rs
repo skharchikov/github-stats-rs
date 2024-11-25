@@ -155,6 +155,7 @@ impl GithubExt for Github {
             .views(views)
             .lines_changed(lines_changed)
             .repos(repos)
+            .forks(forks)
             .build())
     }
 
