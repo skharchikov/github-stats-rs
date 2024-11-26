@@ -1,4 +1,5 @@
 # GitHub Stats RS
+![example workflow](https://github.com/callmestech/github-stats-rs/actions/workflows/main.yml/badge.svg)
 ---
 GitHub Stats RS is a Rust application that generates GitHub statistics and visualizes them using SVG images.
 <a href="https://github.com/callmestech/github-stats-rs">
