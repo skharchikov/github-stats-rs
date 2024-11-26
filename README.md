@@ -1,7 +1,13 @@
 # GitHub Stats RS
-
+---
 GitHub Stats RS is a Rust application that generates GitHub statistics and visualizes them using SVG images.
-
+<a href="https://github.com/callmestech/github-stats-rs">
+<img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/overview.svg#gh-dark-mode-only" />
+<img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/languages.svg#gh-dark-mode-only" />
+<img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/overview.svg#gh-light-mode-only" />
+<img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/languages.svg#gh-light-mode-only" />
+</a>
+   
 ## Features
 
 - Fetches GitHub statistics using the GitHub API
@@ -70,3 +76,7 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
    ![](https://raw.githubusercontent.com/username/github-stats-rs/master/generated/languages.svg#gh-dark-mode-only)
    ![](https://raw.githubusercontent.com/username/github-stats/master/resources/generated/languages.svg#gh-light-mode-only)
    ```
+## Related Projects
+- [jstrieb/github-stats](https://github.com/jstrieb/github-stats)
+
+   
