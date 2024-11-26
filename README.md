@@ -23,22 +23,28 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 - Cargo (latest stable version)
 
 ### Installation
+1. Create a personal access token (not the default GitHub Actions token)
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/github_stats_rs.git
-    cd github_stats_rs
-    ```
+2. Create a copy of this repository by clicking [here](https://github.com/callmestech/github-stats-rs/generate)
 
-2. Build the project:
-    ```sh
-    cargo build --release
-    ```
+3. In the repository settings, navigate to the `Secrets` tab and add the following secrets:
+    - `ACCESS_TOKEN`: GitHub access token
 
-3. Run the project:
-    ```sh
-    cargo run --release
-    ```
+4. Go to the `Actions` tab and run the workflow
+
+5. Take note of the generated SVG images in the output folder
+
+6. To add your statistics to your GitHub Profile README, copy and paste the
+   following lines of code into your markdown content. Change the `username`
+   value to your GitHub username.
+   ```md
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master//resources/generated/overview.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/overview.svg#gh-light-mode-only)
+   ```
+   ```md
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/generated/languages.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats/master/resources/generated/languages.svg#gh-light-mode-only)
+   ```
 
 ## Environment Variables
 
@@ -52,7 +58,7 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 | `TEMPLATE_FOLDER`          | `resources/templates`        | Folder containing SVG templates      |
 | `OUTPUT_FOLDER`            | `resources/generated`        | Folder for generated SVG images      |
 
-## Usage
+## Local Development
 
 1. Create a `.env` file with the following content:
     ```sh
@@ -65,19 +71,8 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
     cargo run --release | bunyan
     ```
 
+3. Open the generated SVG images in the output folder.
 
-3. To add your statistics to your GitHub Profile README, copy and paste the
-   following lines of code into your markdown content. Change the `username`
-   value to your GitHub username.
-   ```md
-   ![](https://raw.githubusercontent.com/username/github-stats-rs/master//resources/generated/overview.svg#gh-dark-mode-only)
-   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/overview.svg#gh-light-mode-only)
-   ```
-   ```md
-   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/generated/languages.svg#gh-dark-mode-only)
-   ![](https://raw.githubusercontent.com/username/github-stats/master/resources/generated/languages.svg#gh-light-mode-only)
-   ```
 ## Related Projects
 - [jstrieb/github-stats](https://github.com/jstrieb/github-stats)
 
-   
