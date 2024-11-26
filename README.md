@@ -38,12 +38,12 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
    following lines of code into your markdown content. Change the `username`
    value to your GitHub username.
    ```md
-   ![](https://raw.githubusercontent.com/username/github-stats-rs/master//resources/generated/overview.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/overview.svg#gh-dark-mode-only)
    ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/overview.svg#gh-light-mode-only)
    ```
    ```md
-   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/generated/languages.svg#gh-dark-mode-only)
-   ![](https://raw.githubusercontent.com/username/github-stats/master/resources/generated/languages.svg#gh-light-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/languages.svg#gh-dark-mode-only)
+   ![](https://raw.githubusercontent.com/username/github-stats-rs/master/resources/generated/languages.svg#gh-light-mode-only)
    ```
 
 ## Environment Variables
