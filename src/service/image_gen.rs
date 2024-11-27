@@ -4,7 +4,6 @@ use svg::{
     node::element::{Group, Rectangle},
     Document,
 };
-use tracing_log::log::warn;
 
 use crate::{algebra::ImageGenExt, domain::Stats};
 
@@ -96,15 +95,14 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
             .set("viewBox", (0, 0, 800, 200))
             .set("xmlns", "http://www.w3.org/2000/svg");
 
-        tracing::info!("grid {:?}", stats.contribution_calendar());
         let mut group = Group::new();
 
         let cell_size = 15;
         let mut animation_delay = 0.0;
 
         for (index, contribution_days) in stats.contribution_calendar().iter().enumerate() {
-            let x = (index % 7) * cell_size; // Each column is a day of the week
-            let y = (index / 7) * cell_size; // Each row represents weeks
+            let x = (index / 7) * cell_size; // Each column is a day of the week
+            let y = (index % 7) * cell_size; // Each row represents weeks
             let color = match contribution_days.contribution_count {
                 0 => "#ebedf0",
                 1..=5 => "#c6e48b",
@@ -126,12 +124,12 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                         .set("from", "#ebedf0") // Initial color
                         .set("to", color) // Final color based on contributions
                         .set("begin", format!("{:.1}s", animation_delay)) // Start delay
-                        .set("dur", "0.5s") // Duration of animation
+                        .set("dur", "0.01s") // Duration of animation
                         .set("fill", "freeze"), // Stay at final color
                 );
 
             group = group.add(rect);
-            animation_delay += 0.1; // Increment delay for the next cell
+            animation_delay += 0.2; // Increment delay for the next cell
         }
 
         document = document.add(group);

@@ -355,7 +355,7 @@ impl GithubExt for Github {
             .unwrap_or_default()
             .iter()
             .flat_map(|weeks| &weeks.contribution_days)
-            .map(|days| days.clone())
+            .cloned()
             .collect::<Vec<_>>();
 
         Ok(result)
