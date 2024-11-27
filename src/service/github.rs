@@ -346,8 +346,6 @@ impl GithubExt for Github {
             variables,
         )?;
 
-        tracing::info!("{:#?}", response);
-
         let result = response
             .data
             .and_then(|data| {
