@@ -1,5 +1,10 @@
 use std::collections::HashMap;
 
+use super::contribution_calendar::ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+
+pub type ContributedDays =
+    ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+
 pub struct Stats {
     name: String,
     stargazers: i64,
@@ -9,6 +14,7 @@ pub struct Stats {
     repos: Vec<String>,
     lines_changed: (i64, i64),
     views: i64,
+    contribution_calendar: Vec<ContributedDays>,
 }
 
 impl Stats {
@@ -21,6 +27,7 @@ impl Stats {
         repos: Vec<String>,
         lines_changed: (i64, i64),
         views: i64,
+        contribution_calendar: Vec<ContributedDays>,
     ) -> Self {
         Self {
             name,
@@ -31,6 +38,7 @@ impl Stats {
             repos,
             lines_changed,
             views,
+            contribution_calendar,
         }
     }
 
@@ -69,6 +77,10 @@ impl Stats {
     pub fn views(&self) -> i64 {
         self.views
     }
+
+    pub fn contribution_calendar(&self) -> &[ContributedDays] {
+        &self.contribution_calendar
+    }
 }
 
 #[derive(Default)]
@@ -81,6 +93,7 @@ pub struct StatsBuilder {
     repos: Option<Vec<String>>,
     lines_changed: Option<(i64, i64)>,
     views: Option<i64>,
+    contribution_calendar: Option<Vec<ContributedDays>>,
 }
 
 impl StatsBuilder {
@@ -94,6 +107,7 @@ impl StatsBuilder {
             repos: self.repos.unwrap_or_default(),
             lines_changed: self.lines_changed.unwrap_or((0, 0)),
             views: self.views.unwrap_or_default(),
+            contribution_calendar: self.contribution_calendar.unwrap_or_default(),
         }
     }
 
@@ -134,6 +148,11 @@ impl StatsBuilder {
 
     pub fn views(mut self, views: i64) -> Self {
         self.views = Some(views);
+        self
+    }
+
+    pub fn contribution_calendar(mut self, contribution_calendar: Vec<ContributedDays>) -> Self {
+        self.contribution_calendar = Some(contribution_calendar);
         self
     }
 }

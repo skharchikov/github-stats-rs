@@ -1,21 +1,20 @@
 use std::{collections::HashMap, fs};
 
-use crate::domain::Stats;
+use svg::{
+    node::element::{Group, Rectangle},
+    Document,
+};
+use tracing_log::log::warn;
+
+use crate::{algebra::ImageGenExt, domain::Stats};
 
 pub struct ImageGen {
     template_folder: String,
     output_folder: String,
 }
 
-impl ImageGen {
-    pub fn new(template_folder: String, output_folder: String) -> Self {
-        Self {
-            template_folder,
-            output_folder,
-        }
-    }
-
-    pub fn generate_overview(&self, stats: &Stats) -> Result<(), anyhow::Error> {
+impl ImageGenExt for ImageGen {
+    fn generate_overview(&self, stats: &Stats) -> Result<(), anyhow::Error> {
         let svg_content = fs::read_to_string(format!("{}/overview.svg", self.template_folder))?;
         let mut tags_map = HashMap::new();
 
@@ -42,7 +41,7 @@ impl ImageGen {
         Ok(())
     }
 
-    pub fn generate_languages(&self, stats: &Stats) -> Result<(), anyhow::Error> {
+    fn generate_languages(&self, stats: &Stats) -> Result<(), anyhow::Error> {
         let svg_content = fs::read_to_string(format!("{}/languages.svg", self.template_folder))?;
         let mut progress = "".to_string();
         let mut lang_list = "".to_string();
@@ -90,6 +89,68 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
         )?;
 
         Ok(())
+    }
+
+    fn generate_contributions_grid(&self, stats: &Stats) -> Result<(), anyhow::Error> {
+        let mut document = Document::new()
+            .set("viewBox", (0, 0, 800, 200))
+            .set("xmlns", "http://www.w3.org/2000/svg");
+
+        tracing::info!("grid {:?}", stats.contribution_calendar());
+        let mut group = Group::new();
+
+        let cell_size = 15;
+        let mut animation_delay = 0.0;
+
+        for (index, contribution_days) in stats.contribution_calendar().iter().enumerate() {
+            let x = (index % 7) * cell_size; // Each column is a day of the week
+            let y = (index / 7) * cell_size; // Each row represents weeks
+            let color = match contribution_days.contribution_count {
+                0 => "#ebedf0",
+                1..=5 => "#c6e48b",
+                6..=10 => "#7bc96f",
+                11..=20 => "#239a3b",
+                _ => "#196127",
+            };
+
+            let rect = Rectangle::new()
+                .set("x", x)
+                .set("y", y)
+                .set("width", 10)
+                .set("height", 10)
+                .set("fill", "#ebedf0") // Start with default color
+                .set("rx", 2) // Rounded corners
+                .add(
+                    svg::node::element::Animate::new()
+                        .set("attributeName", "fill")
+                        .set("from", "#ebedf0") // Initial color
+                        .set("to", color) // Final color based on contributions
+                        .set("begin", format!("{:.1}s", animation_delay)) // Start delay
+                        .set("dur", "0.5s") // Duration of animation
+                        .set("fill", "freeze"), // Stay at final color
+                );
+
+            group = group.add(rect);
+            animation_delay += 0.1; // Increment delay for the next cell
+        }
+
+        document = document.add(group);
+
+        fs::write(
+            format!("{}/contribution_grid.svg", self.output_folder),
+            document.to_string(),
+        )?;
+
+        Ok(())
+    }
+}
+
+impl ImageGen {
+    pub fn new(template_folder: String, output_folder: String) -> Self {
+        Self {
+            template_folder,
+            output_folder,
+        }
     }
 
     fn replace_tags(

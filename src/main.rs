@@ -1,5 +1,5 @@
 use github_stats_rs::{
-    algebra::GithubExt,
+    algebra::{GithubExt, ImageGenExt},
     service::{Configuration, Github, ImageGen, Telemetry},
 };
 use reqwest::blocking::Client;
@@ -38,6 +38,7 @@ fn main() -> Result<(), anyhow::Error> {
     );
     image_gen.generate_overview(&stats)?;
     image_gen.generate_languages(&stats)?;
+    image_gen.generate_contributions_grid(&stats)?;
 
     tracing::info!("Total contributions: {}", total_contributions);
     Ok(())

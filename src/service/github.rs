@@ -6,8 +6,13 @@ use graphql_client::reqwest::post_graphql_blocking;
 use crate::{
     algebra::GithubExt,
     domain::{
-        contribution_years, contributions_by_year, repos_overview, ContributionYears,
-        ContributionsByYear, ContributorActivity, Language, ReposOverview, Stats, ViewTraffic,
+        contribution_calendar::{
+            self, ContributionCalendarUserContributionsCollectionContributionCalendarWeeks,
+            ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays,
+        },
+        contribution_years, contributions_by_year, repos_overview, ContributionCalendar,
+        ContributionYears, ContributionsByYear, ContributorActivity, Language, ReposOverview,
+        Stats, ViewTraffic,
     },
 };
 
@@ -34,6 +39,9 @@ impl Github {
 }
 
 impl GithubExt for Github {
+    type ContributedDays =
+        ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+
     fn total_contributions(&self) -> Result<i64, anyhow::Error> {
         let variables = contribution_years::Variables {};
 
@@ -221,6 +229,7 @@ impl GithubExt for Github {
                         .or_insert(lang.clone());
                     acc
                 });
+
             let total_size = languages.values().map(|lang| lang.size()).sum::<i64>();
             languages.iter_mut().for_each(|(_, lang)| {
                 lang.set_proportion(100f64 * lang.size() as f64 / total_size as f64);
@@ -262,6 +271,7 @@ impl GithubExt for Github {
         let total_contributions = self.total_contributions()?;
         let views = self.views(&repos)?;
         let lines_changed = self.lines_changed(&repos)?;
+        let calendar = self.contribution_calendar()?;
 
         Ok(Stats::builder()
             .name(name.unwrap_or_default())
@@ -272,6 +282,7 @@ impl GithubExt for Github {
             .forks(forks)
             .stargazers(stargazers)
             .languages(languages)
+            .contribution_calendar(calendar)
             .build())
     }
 
@@ -298,8 +309,7 @@ impl GithubExt for Github {
                     .client
                     .get(format!("{}/repos/{}/stats/contributors", &self.url, repo))
                     .send()?;
-                let json = response.json::<Vec<ContributorActivity>>();
-                json
+                response.json::<Vec<ContributorActivity>>()
             })
             .filter_map(Result::ok)
             .flatten()
@@ -323,5 +333,33 @@ impl GithubExt for Github {
             });
 
         Ok(res)
+    }
+
+    fn contribution_calendar(&self) -> anyhow::Result<Vec<Self::ContributedDays>> {
+        let variables = contribution_calendar::Variables {
+            login: self.configuration.github_actor().to_string(),
+        };
+
+        let response = post_graphql_blocking::<ContributionCalendar, _>(
+            &self.client,
+            &self.graphql_url(),
+            variables,
+        )?;
+
+        tracing::info!("{:#?}", response);
+
+        let result = response
+            .data
+            .and_then(|data| {
+                data.user
+                    .map(|user| user.contributions_collection.contribution_calendar.weeks)
+            })
+            .unwrap_or_default()
+            .iter()
+            .flat_map(|weeks| &weeks.contribution_days)
+            .map(|days| days.clone())
+            .collect::<Vec<_>>();
+
+        Ok(result)
     }
 }
