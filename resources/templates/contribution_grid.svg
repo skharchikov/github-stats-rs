@@ -1,0 +1,95 @@
+<svg id="gh-dark-mode-only" width="746" height="161" xmlns="http://www.w3.org/2000/svg">
+<style>
+svg {
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+#background {
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  fill: white;
+  stroke: rgb(225, 228, 232);
+  stroke-width: 1px;
+  rx: 6px;
+  ry: 6px;
+}
+
+#gh-dark-mode-only:target #background {
+  fill: #0d1117;
+  stroke-width: 0.5px;
+}
+
+foreignObject {
+  width: calc(100% - 10px - 32px);
+  height: calc(100% - 10px - 32px);
+}
+
+#gh-dark-mode-only:target th {
+  color: #58a6ff;
+}
+
+#gh-dark-mode-only:target td {
+  color: #c9d1d9;
+}
+
+.octicon {
+  fill: rgb(88, 96, 105);
+  margin-right: 1ch;
+  vertical-align: top;
+}
+
+#gh-dark-mode-only:target .octicon {
+  fill: #8b949e;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateZ(0) rotateX(0);
+  }
+  50% {
+    transform: translateZ(20px) rotateX(20deg);
+  }
+}
+
+
+<!-- Added myself -->
+.contribution_graph {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+}
+
+.contribution_cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: #ebedf0;
+  <!-- animation: wave 1s infinite; -->
+  animation: slideIn 0.5s forwards;
+}
+
+</style>
+<g>
+<rect x="5" y="5" id="background" />
+<g>
+  <foreignObject x="10" y="10" width="723" height="113">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="contribution_graph">
+    {{ grid }}
+    </div>
+  </foreignObject>
+</g>
+</g>
+</svg>

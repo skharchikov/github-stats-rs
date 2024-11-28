@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use super::contribution_calendar::ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+use super::contribution_calendar::ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
-pub type ContributedDays =
-    ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+pub type CalendarWeek = ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
 pub struct Stats {
     name: String,
@@ -14,7 +13,7 @@ pub struct Stats {
     repos: Vec<String>,
     lines_changed: (i64, i64),
     views: i64,
-    contribution_calendar: Vec<ContributedDays>,
+    contribution_calendar: Vec<CalendarWeek>,
 }
 
 impl Stats {
@@ -27,7 +26,7 @@ impl Stats {
         repos: Vec<String>,
         lines_changed: (i64, i64),
         views: i64,
-        contribution_calendar: Vec<ContributedDays>,
+        contribution_calendar: Vec<CalendarWeek>,
     ) -> Self {
         Self {
             name,
@@ -78,7 +77,7 @@ impl Stats {
         self.views
     }
 
-    pub fn contribution_calendar(&self) -> &[ContributedDays] {
+    pub fn contribution_calendar(&self) -> &[CalendarWeek] {
         &self.contribution_calendar
     }
 }
@@ -93,7 +92,7 @@ pub struct StatsBuilder {
     repos: Option<Vec<String>>,
     lines_changed: Option<(i64, i64)>,
     views: Option<i64>,
-    contribution_calendar: Option<Vec<ContributedDays>>,
+    contribution_calendar: Option<Vec<CalendarWeek>>,
 }
 
 impl StatsBuilder {
@@ -151,7 +150,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn contribution_calendar(mut self, contribution_calendar: Vec<ContributedDays>) -> Self {
+    pub fn contribution_calendar(mut self, contribution_calendar: Vec<CalendarWeek>) -> Self {
         self.contribution_calendar = Some(contribution_calendar);
         self
     }

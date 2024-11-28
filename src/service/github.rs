@@ -39,8 +39,7 @@ impl Github {
 }
 
 impl GithubExt for Github {
-    type ContributedDays =
-        ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays;
+    type CalendarWeek = ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
     fn total_contributions(&self) -> Result<i64, anyhow::Error> {
         let variables = contribution_years::Variables {};
@@ -335,7 +334,7 @@ impl GithubExt for Github {
         Ok(res)
     }
 
-    fn contribution_calendar(&self) -> anyhow::Result<Vec<Self::ContributedDays>> {
+    fn contribution_calendar(&self) -> anyhow::Result<Vec<Self::CalendarWeek>> {
         let variables = contribution_calendar::Variables {
             login: self.configuration.github_actor().to_string(),
         };
@@ -352,11 +351,7 @@ impl GithubExt for Github {
                 data.user
                     .map(|user| user.contributions_collection.contribution_calendar.weeks)
             })
-            .unwrap_or_default()
-            .iter()
-            .flat_map(|weeks| &weeks.contribution_days)
-            .cloned()
-            .collect::<Vec<_>>();
+            .unwrap_or_default();
 
         Ok(result)
     }
