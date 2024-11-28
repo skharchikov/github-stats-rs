@@ -1104,5 +1104,8 @@
 <rect fill="#ebedf0" height="10" rx="2" width="10" x="780" y="45">
 <animate attributeName="fill" begin="73.4s" dur="0.01s" fill="freeze" from="#ebedf0" to="#7bc96f"/>
 </rect>
+<rect fill="#ebedf0" height="10" rx="2" width="10" x="780" y="60">
+<animate attributeName="fill" begin="73.6s" dur="0.01s" fill="freeze" from="#ebedf0" to="#ebedf0"/>
+</rect>
 </g>
 </svg>
