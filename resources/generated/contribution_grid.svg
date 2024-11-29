@@ -115,10 +115,17 @@ foreignObject {
   animation: slideInLeft 2s ease-in-out forwards;
 }
 
+.month-label {
+  fill: #767676;
+  font-size: 12px;
+  animation: slideInLeft 2s ease-in-out forwards;
+}
+
 </style>
 <g>
 <rect x="5" y="5" id="background" />
 <g>
+  <text style="animation-delay: 150ms" x="40" y="40" class="month-label">Dec</text><text style="animation-delay: 300ms" x="100" y="40" class="month-label">Jan</text><text style="animation-delay: 450ms" x="148" y="40" class="month-label">Feb</text><text style="animation-delay: 600ms" x="196" y="40" class="month-label">Mar</text><text style="animation-delay: 750ms" x="256" y="40" class="month-label">Apr</text><text style="animation-delay: 900ms" x="304" y="40" class="month-label">May</text><text style="animation-delay: 1050ms" x="352" y="40" class="month-label">Jun</text><text style="animation-delay: 1200ms" x="412" y="40" class="month-label">Jul</text><text style="animation-delay: 1350ms" x="460" y="40" class="month-label">Aug</text><text style="animation-delay: 1500ms" x="520" y="40" class="month-label">Sep</text><text style="animation-delay: 1650ms" x="568" y="40" class="month-label">Oct</text><text style="animation-delay: 1800ms" x="616" y="40" class="month-label">Nov</text>
   <text style="animation-delay: 150ms" x="10" y="70" class="day-label">Mon</text>
   <text style="animation-delay: 300ms" x="10" y="90" class="day-label">Wed</text>
   <text style="animation-delay: 450ms" x="10" y="110" class="day-label">Fri</text>
