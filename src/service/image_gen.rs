@@ -1,5 +1,7 @@
 use std::{collections::HashMap, fs};
 
+use chrono::NaiveDate;
+
 use crate::{algebra::ImageGenExt, domain::Stats};
 
 pub struct ImageGen {
@@ -89,10 +91,25 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
         let svg_content =
             fs::read_to_string(format!("{}/contribution_grid.svg", self.template_folder))?;
         let mut grid: String = "".to_string();
+        let mut months: Vec<(String, usize)> = Vec::new();
 
         let mut animation_delay = 0;
+        let mut week_index = 0;
 
         for week in stats.contribution_calendar().iter() {
+            if let Some(first_day) = week.contribution_days.last() {
+                let date = first_day.date.to_string();
+                let naive_date = NaiveDate::parse_from_str(&date, " %Y-%m-%d")?;
+                // Get the first 3 letters of the month
+                let month = naive_date.format("%b").to_string();
+                if months
+                    .last()
+                    .map_or(true, |(last_month, _)| *last_month != month)
+                {
+                    months.push((month, week_index));
+                }
+            }
+
             grid.push_str("<div>");
             for day in week.contribution_days.iter() {
                 let color = day.color.clone();
@@ -105,10 +122,26 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                 animation_delay += 10; // Increment delay for the next cell
             }
             grid.push_str("</div>");
+            week_index += 1;
         }
 
-        let modified_content =
-            Self::replace_tags(svg_content, &HashMap::from([("grid".to_string(), grid)]))?;
+        let mut month_animation_delay = 150;
+        let mut month_labels = String::new();
+        for (month, week_index) in months {
+            let x = 40 + week_index * 12; // Adjust the x position based on the week index
+            month_labels.push_str(&format!(
+                r#"<text style="animation-delay: {}ms" x="{}" y="40" class="month-label">{}</text>"#, month_animation_delay, x, month
+            ));
+            month_animation_delay += 150;
+        }
+
+        let modified_content = Self::replace_tags(
+            svg_content,
+            &HashMap::from([
+                ("grid".to_string(), grid),
+                ("months".to_string(), month_labels),
+            ]),
+        )?;
 
         fs::write(
             format!("{}/contribution_grid.svg", self.output_folder),

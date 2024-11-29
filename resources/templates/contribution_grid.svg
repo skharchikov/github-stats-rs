@@ -115,10 +115,17 @@ foreignObject {
   animation: slideInLeft 2s ease-in-out forwards;
 }
 
+.month-label {
+  fill: #767676;
+  font-size: 12px;
+  animation: slideInLeft 2s ease-in-out forwards;
+}
+
 </style>
 <g>
 <rect x="5" y="5" id="background" />
 <g>
+  {{ months }}
   <text style="animation-delay: 150ms" x="10" y="70" class="day-label">Mon</text>
   <text style="animation-delay: 300ms" x="10" y="90" class="day-label">Wed</text>
   <text style="animation-delay: 450ms" x="10" y="110" class="day-label">Fri</text>
