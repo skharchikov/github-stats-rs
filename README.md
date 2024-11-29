@@ -13,6 +13,7 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 ---
 <a href="https://github.com/callmestech/github-stats-rs">
 <img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/contribution_grid.svg#gh-dark-mode-only" />
+<img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/contribution_grid.svg#gh-light-mode-only" />
 </a>
    
 ## Features
