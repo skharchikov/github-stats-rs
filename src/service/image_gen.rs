@@ -43,10 +43,7 @@ impl ImageGenExt for ImageGen {
         let mut lang_list = "".to_string();
         let mut tags_map = HashMap::new();
 
-        let mut sorted_languages = stats.languages().iter().collect::<Vec<_>>();
-        sorted_languages.sort_by(|a, b| a.1.size().cmp(&b.1.size()));
-
-        for (idx, (language, data)) in sorted_languages.iter().rev().enumerate() {
+        for (idx, (language, data)) in stats.languages().iter().enumerate() {
             let proportion = format!("{:.2}", data.proportion());
             let progress_tmp = format!(
                 r#"<span style="background-color: {}; width: {}%;" class="progress-item"></span>"#,

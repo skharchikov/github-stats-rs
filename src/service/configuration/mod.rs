@@ -18,6 +18,8 @@ pub struct Configuration {
     excluded_langs: String,
     #[config(env = "EXCLUDE_FORKED_REPOS", default = true)]
     exclude_forked_repos: bool,
+    #[config(env = "LANGUAGES_LIMIT", default = 10)]
+    languages_limit: usize,
     #[config(env = "TEMPLATE_FOLDER", default = "resources/templates")]
     template_folder: String,
     #[config(env = "OUTPUT_FOLDER", default = "resources/generated")]
@@ -63,5 +65,9 @@ impl Configuration {
 
     pub fn output_folder(&self) -> &str {
         &self.output_folder
+    }
+
+    pub fn languages_limit(&self) -> usize {
+        self.languages_limit
     }
 }

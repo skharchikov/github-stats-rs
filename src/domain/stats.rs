@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::contribution_calendar::ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
 pub type CalendarWeek = ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
@@ -9,7 +7,9 @@ pub struct Stats {
     stargazers: i64,
     forks: i64,
     total_contributions: i64,
-    languages: HashMap<String, Language>,
+    /// A Vec of languages with their name as key and the Language struct as value
+    /// Sorted by the size of the language
+    languages: Vec<(String, Language)>,
     repos: Vec<String>,
     lines_changed: (i64, i64),
     views: i64,
@@ -22,7 +22,7 @@ impl Stats {
         stargazers: i64,
         forks: i64,
         total_contributions: i64,
-        languages: HashMap<String, Language>,
+        languages: Vec<(String, Language)>,
         repos: Vec<String>,
         lines_changed: (i64, i64),
         views: i64,
@@ -61,7 +61,7 @@ impl Stats {
         self.total_contributions
     }
 
-    pub fn languages(&self) -> &HashMap<String, Language> {
+    pub fn languages(&self) -> &Vec<(String, Language)> {
         &self.languages
     }
 
@@ -88,7 +88,7 @@ pub struct StatsBuilder {
     stargazers: Option<i64>,
     forks: Option<i64>,
     total_contributions: Option<i64>,
-    languages: Option<HashMap<String, Language>>,
+    languages: Option<Vec<(String, Language)>>,
     repos: Option<Vec<String>>,
     lines_changed: Option<(i64, i64)>,
     views: Option<i64>,
@@ -130,7 +130,7 @@ impl StatsBuilder {
         self
     }
 
-    pub fn languages(mut self, languages: HashMap<String, Language>) -> Self {
+    pub fn languages(mut self, languages: Vec<(String, Language)>) -> Self {
         self.languages = Some(languages);
         self
     }

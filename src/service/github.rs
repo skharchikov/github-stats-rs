@@ -109,7 +109,7 @@ impl GithubExt for Github {
         let mut repos: Vec<String> = vec![];
         let mut forks = 0;
         let mut stargazers = 0;
-        let mut languages: HashMap<String, Language> = HashMap::new();
+        let mut languages_map: HashMap<String, Language> = HashMap::new();
 
         loop {
             let variables = repos_overview::Variables {
@@ -127,7 +127,7 @@ impl GithubExt for Github {
                 .as_ref()
                 .and_then(|data| data.viewer.name.clone()));
 
-            let mut languages_contributed = languages;
+            let mut languages_contributed = languages_map;
 
             if self.configuration.exclude_forked_repos() {
                 // do nothing
@@ -197,7 +197,7 @@ impl GithubExt for Github {
                 stargazers += repo.stargazer_count;
             }
 
-            languages = owned_repos
+            languages_map = owned_repos
                 .iter()
                 .flat_map(|repos| &repos.nodes)
                 .flatten()
@@ -229,8 +229,8 @@ impl GithubExt for Github {
                     acc
                 });
 
-            let total_size = languages.values().map(|lang| lang.size()).sum::<i64>();
-            languages.iter_mut().for_each(|(_, lang)| {
+            let total_size = languages_map.values().map(|lang| lang.size()).sum::<i64>();
+            languages_map.iter_mut().for_each(|(_, lang)| {
                 lang.set_proportion(100f64 * lang.size() as f64 / total_size as f64);
             });
 
@@ -267,6 +267,13 @@ impl GithubExt for Github {
                 break;
             }
         }
+        // sort languages by size and take top N languages as defined in configuration
+        let mut languages = languages_map.into_iter().collect::<Vec<_>>();
+        languages.sort_by(|a, b| b.1.size().cmp(&a.1.size()));
+        languages = languages
+            .into_iter()
+            .take(self.configuration.languages_limit())
+            .collect();
         let total_contributions = self.total_contributions()?;
         let views = self.views(&repos)?;
         let lines_changed = self.lines_changed(&repos)?;
