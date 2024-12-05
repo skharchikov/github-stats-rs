@@ -11,40 +11,48 @@ permissions:
   contents: write
 
 jobs:
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Enforce formatting
+        run: cargo fmt --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Linting
+        run: cargo clippy -- -D warnings
+
   build:
     runs-on: ubuntu-latest
-
+    needs: [fmt, clippy]
     steps:
-      # Check out repository under $GITHUB_WORKSPACE, so the job can access it
       - uses: actions/checkout@v3
-
-      # Set up Rust environment
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
-
-      # Build the Rust application
       - name: Build
         run: cargo build --release
-
-      # Run the Rust application
       - name: Generate images
         run: ./target/release/github-stats-rs
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # EXCLUDED: ${{ secrets.EXCLUDED }}
-          # EXCLUDED_LANGS: ${{ secrets.EXCLUDED_LANGS }}
-          # EXCLUDE_FORKED_REPOS: true
-
-      # Commit all changed files to the repository
       - name: Commit to the repo
         run: |
           git config --global user.name "callmestech/github-stats-rs"
           git config --global user.email "github-stats[bot]@callmestech.github.io"
           git add .
-          # Force the build to succeed, even if no files were changed
           git commit -m 'Update generated files' || true
           git push

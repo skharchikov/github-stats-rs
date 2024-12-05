@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use graphql_client::reqwest::post_graphql_blocking;
 
 use crate::{
@@ -8,7 +8,6 @@ use crate::{
     domain::{
         contribution_calendar::{
             self, ContributionCalendarUserContributionsCollectionContributionCalendarWeeks,
-            ContributionCalendarUserContributionsCollectionContributionCalendarWeeksContributionDays,
         },
         contribution_years, contributions_by_year, repos_overview, ContributionCalendar,
         ContributionYears, ContributionsByYear, ContributorActivity, Language, ReposOverview,
@@ -48,8 +47,7 @@ impl GithubExt for Github {
             &self.client,
             &self.graphql_url(),
             variables,
-        )
-        .unwrap();
+        )?;
 
         let years = contribution_years_response
             .data
@@ -59,22 +57,31 @@ impl GithubExt for Github {
             .map(|years| {
                 years
                     .iter()
-                    .map(|year| {
+                    .filter_map(|year| {
                         let year_i32 = *year as i32;
-                        let beginning_of_year =
-                            NaiveDate::from_ymd(year_i32, 1, 1).and_hms(0, 0, 0);
-                        let next_year = NaiveDate::from_ymd(year_i32 + 1, 1, 1).and_hms(0, 0, 0);
 
-                        // Convert NaiveDate to DateTime<Utc>
-                        let beginning_of_year_utc: DateTime<Utc> =
-                            DateTime::from_utc(beginning_of_year, Utc);
-                        let next_year_utc: DateTime<Utc> = DateTime::from_utc(next_year, Utc);
+                        let beggining_of_the_year: Option<DateTime<Utc>> =
+                            NaiveDate::from_ymd_opt(year_i32 + 1, 1, 1)
+                                .and_then(|date| date.and_hms_opt(0, 0, 0))
+                                .map(|naive_date_time| {
+                                    TimeZone::from_utc_datetime(&Utc, &naive_date_time)
+                                });
 
-                        // Convert DateTime<Utc> to string
-                        let from = beginning_of_year_utc.to_rfc3339();
-                        let to = next_year_utc.to_rfc3339();
+                        let beggining_of_the_next_year: Option<DateTime<Utc>> =
+                            NaiveDate::from_ymd_opt(year_i32 + 1, 1, 1)
+                                .and_then(|date| date.and_hms_opt(0, 0, 0))
+                                .map(|naive_date_time| {
+                                    TimeZone::from_utc_datetime(&Utc, &naive_date_time)
+                                });
 
-                        let variables = contributions_by_year::Variables { from, to };
+                        beggining_of_the_year
+                            .zip(beggining_of_the_next_year)
+                            .map(|(start, end)| contributions_by_year::Variables {
+                                from: start.to_rfc3339(),
+                                to: end.to_rfc3339(),
+                            })
+                    })
+                    .map(|variables| {
                         post_graphql_blocking::<ContributionsByYear, _>(
                             &self.client,
                             &self.graphql_url(),
@@ -83,7 +90,7 @@ impl GithubExt for Github {
                     })
                     .collect::<Vec<_>>()
             })
-            .unwrap()
+            .unwrap_or_default()
             .into_iter()
             .filter_map(|response| response.unwrap().data.map(|data| data.viewer))
             .collect::<Vec<_>>();
@@ -231,7 +238,7 @@ impl GithubExt for Github {
 
             let total_size = languages_map.values().map(|lang| lang.size()).sum::<i64>();
             languages_map.iter_mut().for_each(|(_, lang)| {
-                lang.set_proportion(100f64 * lang.size() as f64 / total_size as f64);
+                lang.set_proportion(total_size);
             });
 
             let has_next_owned = owned_repos
@@ -292,7 +299,7 @@ impl GithubExt for Github {
             .build())
     }
 
-    fn views(&self, repos: &Vec<String>) -> Result<i64, anyhow::Error> {
+    fn views(&self, repos: &[String]) -> Result<i64, anyhow::Error> {
         let mut views = 0;
 
         for repo in repos {
@@ -307,7 +314,7 @@ impl GithubExt for Github {
         Ok(views)
     }
 
-    fn lines_changed(&self, repos: &Vec<String>) -> Result<(i64, i64), anyhow::Error> {
+    fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64), anyhow::Error> {
         let res = repos
             .iter()
             .map(|repo| -> Result<Vec<ContributorActivity>, reqwest::Error> {

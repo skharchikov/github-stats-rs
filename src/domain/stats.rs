@@ -17,30 +17,6 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new(
-        name: String,
-        stargazers: i64,
-        forks: i64,
-        total_contributions: i64,
-        languages: Vec<(String, Language)>,
-        repos: Vec<String>,
-        lines_changed: (i64, i64),
-        views: i64,
-        contribution_calendar: Vec<CalendarWeek>,
-    ) -> Self {
-        Self {
-            name,
-            stargazers,
-            forks,
-            total_contributions,
-            languages,
-            repos,
-            lines_changed,
-            views,
-            contribution_calendar,
-        }
-    }
-
     pub fn builder() -> StatsBuilder {
         StatsBuilder::default()
     }
@@ -204,7 +180,8 @@ impl Language {
         self.occurrences
     }
 
-    pub fn set_proportion(&mut self, proportion: f64) {
+    pub fn set_proportion(&mut self, total_size: i64) {
+        let proportion = 100f64 * self.size as f64 / total_size as f64;
         self.proportion = proportion;
     }
 }
