@@ -28,8 +28,12 @@ fn main() -> Result<(), anyhow::Error> {
         .build()?;
 
     let github = Github::new(configuration.clone(), client);
-    let total_contributions = github.total_contributions()?;
     let stats = github.get_stats()?;
+    let lines_changed = stats.lines_changed();
+    let total_contributions = stats.total_contributions();
+
+    println!("Lines changed: {}, {}", lines_changed.0, lines_changed.1);
+    println!("Total contributions: {}", total_contributions);
 
     // Generate the images
     let image_gen = ImageGen::new(

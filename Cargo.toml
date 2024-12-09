@@ -16,7 +16,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.93"
 chrono = { version = "0.4.38", features = ["serde"] }
-confique = "0.3.0"
+confique = { version = "0.3.0", features = ["yaml"] }
 dotenvy = "0.15.7"
 graphql_client = { version = "0.14.0", features = [
   "reqwest",

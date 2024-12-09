@@ -19,7 +19,7 @@ pub struct ContributionYears;
 )]
 pub struct ReposOverview;
 
-#[derive(GraphQLQuery)]
+#[derive(Debug, GraphQLQuery)]
 #[graphql(
     schema_path = "resources/graphql/schema.graphql",
     query_path = "resources/graphql/contributions_by_year.graphql",

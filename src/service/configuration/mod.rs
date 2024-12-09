@@ -24,6 +24,8 @@ pub struct Configuration {
     template_folder: String,
     #[config(env = "OUTPUT_FOLDER", default = "resources/generated")]
     output_folder: String,
+    #[config(default = "https://api.github.com")]
+    github_url: String,
 }
 
 impl Configuration {
@@ -55,6 +57,7 @@ impl Configuration {
 
         Configuration::builder()
             .env()
+            .file("resources/configuration/base.yaml")
             .load()
             .expect("Failed to load configuration")
     }
@@ -69,5 +72,9 @@ impl Configuration {
 
     pub fn languages_limit(&self) -> usize {
         self.languages_limit
+    }
+
+    pub fn github_url(&self) -> &str {
+        &self.github_url
     }
 }

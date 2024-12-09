@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::Result;
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use graphql_client::reqwest::post_graphql_blocking;
 
@@ -20,7 +21,6 @@ use super::Configuration;
 pub struct Github {
     configuration: Configuration,
     client: reqwest::blocking::Client,
-    url: String,
 }
 
 impl Github {
@@ -28,12 +28,11 @@ impl Github {
         Self {
             configuration,
             client,
-            url: "https://api.github.com".to_string(),
         }
     }
 
     pub fn graphql_url(&self) -> String {
-        format!("{}/graphql", self.url)
+        format!("{}/graphql", self.configuration.github_url())
     }
 }
 
@@ -61,7 +60,7 @@ impl GithubExt for Github {
                         let year_i32 = *year as i32;
 
                         let beggining_of_the_year: Option<DateTime<Utc>> =
-                            NaiveDate::from_ymd_opt(year_i32 + 1, 1, 1)
+                            NaiveDate::from_ymd_opt(year_i32, 1, 1)
                                 .and_then(|date| date.and_hms_opt(0, 0, 0))
                                 .map(|naive_date_time| {
                                     TimeZone::from_utc_datetime(&Utc, &naive_date_time)
@@ -92,7 +91,8 @@ impl GithubExt for Github {
             })
             .unwrap_or_default()
             .into_iter()
-            .filter_map(|response| response.unwrap().data.map(|data| data.viewer))
+            .filter_map(Result::ok)
+            .filter_map(|response| response.data.map(|data| data.viewer))
             .collect::<Vec<_>>();
 
         let total_contributions: i64 = by_year_response
@@ -108,7 +108,7 @@ impl GithubExt for Github {
         Ok(total_contributions)
     }
 
-    fn get_stats(&self) -> Result<Stats, anyhow::Error> {
+    fn get_stats(&self) -> Result<Stats> {
         let mut next_owned = None;
         let mut next_contrib = None;
 
@@ -137,8 +137,9 @@ impl GithubExt for Github {
             let mut languages_contributed = languages_map;
 
             if self.configuration.exclude_forked_repos() {
-                // do nothing
+                // in this case we only fetch owned repos
             } else {
+                // in this case we fetch both owned and contributed repos
                 let contributed_repos = raw_results
                     .data
                     .as_ref()
@@ -299,13 +300,17 @@ impl GithubExt for Github {
             .build())
     }
 
-    fn views(&self, repos: &[String]) -> Result<i64, anyhow::Error> {
+    fn views(&self, repos: &[String]) -> Result<i64> {
         let mut views = 0;
 
         for repo in repos {
             let response = self
                 .client
-                .get(format!("{}/repos/{}/traffic/views", &self.url, repo))
+                .get(format!(
+                    "{}/repos/{}/traffic/views",
+                    &self.configuration.github_url(),
+                    repo
+                ))
                 .send()?;
             let json = response.json::<ViewTraffic>()?;
             let sum: i64 = json.views().iter().map(|view| view.count()).sum();
@@ -314,13 +319,17 @@ impl GithubExt for Github {
         Ok(views)
     }
 
-    fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64), anyhow::Error> {
+    fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
         let res = repos
             .iter()
             .map(|repo| -> Result<Vec<ContributorActivity>, reqwest::Error> {
                 let response = self
                     .client
-                    .get(format!("{}/repos/{}/stats/contributors", &self.url, repo))
+                    .get(format!(
+                        "{}/repos/{}/stats/contributors",
+                        &self.configuration.github_url(),
+                        repo
+                    ))
                     .send()?;
                 response.json::<Vec<ContributorActivity>>()
             })
@@ -348,7 +357,7 @@ impl GithubExt for Github {
         Ok(res)
     }
 
-    fn contribution_calendar(&self) -> anyhow::Result<Vec<Self::CalendarWeek>> {
+    fn contribution_calendar(&self) -> Result<Vec<Self::CalendarWeek>> {
         let variables = contribution_calendar::Variables {
             login: self.configuration.github_actor().to_string(),
         };
