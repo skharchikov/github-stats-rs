@@ -1,3 +1,5 @@
+#![allow(async_fn_in_trait)]
+
 use crate::domain::Stats;
 
 use anyhow::Result;
