@@ -18,6 +18,7 @@ use crate::{
 
 use super::Configuration;
 
+#[derive(Debug)]
 pub struct Github {
     configuration: Configuration,
     client: reqwest::blocking::Client,
@@ -39,6 +40,7 @@ impl Github {
 impl GithubExt for Github {
     type CalendarWeek = ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
+    #[tracing::instrument]
     fn total_contributions(&self) -> Result<i64, anyhow::Error> {
         let variables = contribution_years::Variables {};
 
@@ -108,6 +110,7 @@ impl GithubExt for Github {
         Ok(total_contributions)
     }
 
+    #[tracing::instrument]
     fn get_stats(&self) -> Result<Stats> {
         let mut next_owned = None;
         let mut next_contrib = None;
@@ -300,6 +303,7 @@ impl GithubExt for Github {
             .build())
     }
 
+    #[tracing::instrument]
     fn views(&self, repos: &[String]) -> Result<i64> {
         let mut views = 0;
 
@@ -319,6 +323,7 @@ impl GithubExt for Github {
         Ok(views)
     }
 
+    #[tracing::instrument]
     fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
         let res = repos
             .iter()
@@ -357,6 +362,7 @@ impl GithubExt for Github {
         Ok(res)
     }
 
+    #[tracing::instrument]
     fn contribution_calendar(&self) -> Result<Vec<Self::CalendarWeek>> {
         let variables = contribution_calendar::Variables {
             login: self.configuration.github_actor().to_string(),

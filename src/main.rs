@@ -32,9 +32,6 @@ fn main() -> Result<(), anyhow::Error> {
     let lines_changed = stats.lines_changed();
     let total_contributions = stats.total_contributions();
 
-    println!("Lines changed: {}, {}", lines_changed.0, lines_changed.1);
-    println!("Total contributions: {}", total_contributions);
-
     // Generate the images
     let image_gen = ImageGen::new(
         configuration.template_folder().to_string(),
@@ -45,5 +42,6 @@ fn main() -> Result<(), anyhow::Error> {
     image_gen.generate_contributions_grid(&stats)?;
 
     tracing::info!("Total contributions: {}", total_contributions);
+    tracing::info!("Lines changed: {}, {}", lines_changed.0, lines_changed.1);
     Ok(())
 }
