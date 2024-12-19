@@ -12,7 +12,7 @@ use crate::{
         },
         contribution_years, contributions_by_year, repos_overview, ContributionCalendar,
         ContributionYears, ContributionsByYear, ContributorActivity, Language, ReposOverview,
-        Stats, ViewTraffic,
+        Stats, StatsBuilder, ViewTraffic,
     },
 };
 
@@ -290,7 +290,7 @@ impl GithubExt for Github {
         let lines_changed = self.lines_changed(&repos)?;
         let calendar = self.contribution_calendar()?;
 
-        Ok(Stats::builder()
+        let stats = StatsBuilder::default()
             .name(name.unwrap_or_default())
             .total_contributions(total_contributions)
             .views(views)
@@ -300,7 +300,9 @@ impl GithubExt for Github {
             .stargazers(stargazers)
             .languages(languages)
             .contribution_calendar(calendar)
-            .build())
+            .build()?;
+
+        Ok(stats)
     }
 
     #[tracing::instrument]
