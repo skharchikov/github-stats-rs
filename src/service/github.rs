@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
-use graphql_client::reqwest::post_graphql_blocking;
-use reqwest::blocking::Client;
+use graphql_client::reqwest::post_graphql;
+use reqwest::Client;
+use tokio::task::JoinSet;
 
 use crate::{
     algebra::GithubExt,
@@ -42,20 +43,18 @@ impl GithubExt for Github {
     type CalendarWeek = ContributionCalendarUserContributionsCollectionContributionCalendarWeeks;
 
     #[tracing::instrument]
-    fn total_contributions(&self) -> Result<i64, anyhow::Error> {
+    async fn total_contributions(&self) -> Result<i64, anyhow::Error> {
         let variables = contribution_years::Variables {};
 
-        let contribution_years_response = post_graphql_blocking::<ContributionYears, _>(
-            &self.client,
-            &self.graphql_url(),
-            variables,
-        )?;
+        let contribution_years_response =
+            post_graphql::<ContributionYears, _>(&self.client, &self.graphql_url(), variables)
+                .await?;
 
         let years = contribution_years_response
             .data
             .map(|data| data.viewer.contributions_collection.contribution_years);
 
-        let by_year_response = years
+        let variables = years
             .map(|years| {
                 years
                     .iter()
@@ -83,16 +82,26 @@ impl GithubExt for Github {
                                 to: end.to_rfc3339(),
                             })
                     })
-                    .map(|variables| {
-                        post_graphql_blocking::<ContributionsByYear, _>(
-                            &self.client,
-                            &self.graphql_url(),
-                            variables,
-                        )
-                    })
                     .collect::<Vec<_>>()
             })
-            .unwrap_or_default()
+            .unwrap_or_default();
+
+        let mut result = vec![];
+        // why I can't use JoinSet here?
+
+        // I had an error when I tried to use JoinSet here, so I had to use a for loop
+        // temporary v
+        for variables in variables {
+            let response = post_graphql::<ContributionsByYear, _>(
+                &self.client,
+                &self.graphql_url(),
+                variables,
+            )
+            .await;
+            result.push(response);
+        }
+
+        let by_year_response = result
             .into_iter()
             .filter_map(Result::ok)
             .filter_map(|response| response.data.map(|data| data.viewer))
@@ -112,7 +121,7 @@ impl GithubExt for Github {
     }
 
     #[tracing::instrument]
-    fn get_stats(&self) -> Result<Stats> {
+    async fn get_stats(&self) -> Result<Stats> {
         let mut next_owned = None;
         let mut next_contrib = None;
 
@@ -127,11 +136,9 @@ impl GithubExt for Github {
                 owned_cursor: next_owned,
                 contributed_cursor: next_contrib,
             };
-            let raw_results = post_graphql_blocking::<ReposOverview, _>(
-                &self.client,
-                &self.graphql_url(),
-                variables,
-            )?;
+            let raw_results =
+                post_graphql::<ReposOverview, _>(&self.client, &self.graphql_url(), variables)
+                    .await?;
 
             name = name.or(raw_results
                 .data
@@ -286,28 +293,31 @@ impl GithubExt for Github {
             .into_iter()
             .take(self.configuration.languages_limit())
             .collect();
-        let total_contributions = self.total_contributions()?;
-        let views = self.views(&repos)?;
-        let lines_changed = self.lines_changed(&repos)?;
-        let calendar = self.contribution_calendar()?;
+        let total_contributions = self.total_contributions();
+        let views = self.views(&repos);
+        let lines_changed = self.lines_changed(&repos);
+        let calendar = self.contribution_calendar();
+
+        let (total_contributions, views, lines_changed, calendar) =
+            tokio::join!(total_contributions, views, lines_changed, calendar);
 
         let stats = StatsBuilder::default()
             .name(name.unwrap_or_default())
-            .total_contributions(total_contributions)
-            .views(views)
-            .lines_changed(lines_changed)
+            .total_contributions(total_contributions?)
+            .views(views?)
+            .lines_changed(lines_changed?)
             .repos(repos)
             .forks(forks)
             .stargazers(stargazers)
             .languages(languages)
-            .contribution_calendar(calendar)
+            .contribution_calendar(calendar?)
             .build()?;
 
         Ok(stats)
     }
 
     #[tracing::instrument]
-    fn views(&self, repos: &[String]) -> Result<i64> {
+    async fn views(&self, repos: &[String]) -> Result<i64> {
         let mut views = 0;
 
         for repo in repos {
@@ -318,8 +328,9 @@ impl GithubExt for Github {
                     &self.configuration.github_url(),
                     repo
                 ))
-                .send()?;
-            let json = response.json::<ViewTraffic>()?;
+                .send()
+                .await?;
+            let json = response.json::<ViewTraffic>().await?;
             let sum: i64 = json.views().iter().map(|view| view.count()).sum();
             views += sum;
         }
@@ -327,21 +338,25 @@ impl GithubExt for Github {
     }
 
     #[tracing::instrument]
-    fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
-        let res = repos
-            .iter()
-            .map(|repo| -> Result<Vec<ContributorActivity>, reqwest::Error> {
-                let response = self
-                    .client
-                    .get(format!(
-                        "{}/repos/{}/stats/contributors",
-                        &self.configuration.github_url(),
-                        repo
-                    ))
-                    .send()?;
-                response.json::<Vec<ContributorActivity>>()
-            })
-            .filter_map(Result::ok)
+    async fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
+        let mut tasks = JoinSet::new();
+        for repo in repos {
+            // uses Arc under the hood so it's fine to clone
+            let client = self.client.clone();
+            let url = format!(
+                "{}/repos/{}/stats/cxontributors",
+                &self.configuration.github_url(),
+                repo
+            );
+            let result = client.get(&url).send().await?;
+            let task = result.json::<Vec<ContributorActivity>>();
+            tasks.spawn(task);
+        }
+        let responses = tasks.join_all().await;
+
+        let res = responses
+            .into_iter()
+            .filter_map(|res| res.ok())
             .flatten()
             .collect::<Vec<_>>()
             .iter()
@@ -366,16 +381,14 @@ impl GithubExt for Github {
     }
 
     #[tracing::instrument]
-    fn contribution_calendar(&self) -> Result<Vec<Self::CalendarWeek>> {
+    async fn contribution_calendar(&self) -> Result<Vec<Self::CalendarWeek>> {
         let variables = contribution_calendar::Variables {
             login: self.configuration.github_actor().to_string(),
         };
 
-        let response = post_graphql_blocking::<ContributionCalendar, _>(
-            &self.client,
-            &self.graphql_url(),
-            variables,
-        )?;
+        let response =
+            post_graphql::<ContributionCalendar, _>(&self.client, &self.graphql_url(), variables)
+                .await?;
 
         let result = response
             .data

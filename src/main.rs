@@ -2,11 +2,12 @@ use github_stats_rs::{
     algebra::{GithubExt, ImageGenExt},
     service::{Configuration, Github, ImageGen, Telemetry},
 };
-use reqwest::blocking::Client;
+use reqwest::Client;
 use secrecy::ExposeSecret;
 use tracing_subscriber::Registry;
 
-fn main() -> Result<(), anyhow::Error> {
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
     Telemetry::<Registry>::new("github_stats_rs".into(), "info".into(), std::io::stdout).init();
 
     let configuration = Configuration::load_or_die();
@@ -28,7 +29,7 @@ fn main() -> Result<(), anyhow::Error> {
         .build()?;
 
     let github = Github::new(configuration.clone(), client);
-    let stats = github.get_stats()?;
+    let stats = github.get_stats().await?;
     let lines_changed = stats.lines_changed();
     let total_contributions = stats.total_contributions();
 
