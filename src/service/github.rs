@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use graphql_client::reqwest::post_graphql_blocking;
+use reqwest::blocking::Client;
 
 use crate::{
     algebra::GithubExt,
@@ -21,11 +22,11 @@ use super::Configuration;
 #[derive(Debug)]
 pub struct Github {
     configuration: Configuration,
-    client: reqwest::blocking::Client,
+    client: Client,
 }
 
 impl Github {
-    pub fn new(configuration: Configuration, client: reqwest::blocking::Client) -> Self {
+    pub fn new(configuration: Configuration, client: Client) -> Self {
         Self {
             configuration,
             client,
