@@ -100,7 +100,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                 let month = naive_date.format("%b").to_string();
                 if months
                     .last()
-                    .map_or(true, |(last_month, _)| *last_month != month)
+                    .is_none_or(|(last_month, _)| *last_month != month)
                 {
                     months.push((month, week_index));
                 }

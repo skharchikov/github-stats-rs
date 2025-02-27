@@ -344,7 +344,7 @@ impl GithubExt for Github {
             // uses Arc under the hood so it's fine to clone
             let client = self.client.clone();
             let url = format!(
-                "{}/repos/{}/stats/cxontributors",
+                "{}/repos/{}/stats/contributors",
                 &self.configuration.github_url(),
                 repo
             );
