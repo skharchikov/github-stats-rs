@@ -111,8 +111,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                 let color = day.color.clone();
 
                 grid.push_str(&format!(
-                    r#"<div class="contribution_cell" style="background-color: {}; animation-delay: {}ms;"></div>"#,
-                    color, animation_delay
+                    r#"<div class="contribution_cell" style="background-color: {color}; animation-delay: {animation_delay}ms;"></div>"#,
                 ));
 
                 animation_delay += 10; // Increment delay for the next cell
@@ -125,7 +124,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
               .fold(("".to_string(), 150), |(mut month_labels, animation_delay), (month, week_index)| {
              let x = 40 + week_index * 12; // Adjust the x position based on the week index
              month_labels.push_str(&format!(
-                r#"<text style="animation-delay: {}ms" x="{}" y="40" class="month-label">{}</text>"#, animation_delay, x, month
+                r#"<text style="animation-delay: {animation_delay}ms" x="{x}" y="40" class="month-label">{month}</text>"#
             ));
             (month_labels, animation_delay + 150)
         }).0;
@@ -161,7 +160,7 @@ impl ImageGen {
     ) -> Result<String, anyhow::Error> {
         let mut modified_content = content;
         for (tag, value) in replacements {
-            let pattern = format!(r"{{{{ {} }}}}", tag);
+            let pattern = format!(r"{{{{ {tag} }}}}");
 
             modified_content = modified_content.replace(&pattern, value);
         }
