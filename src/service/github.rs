@@ -339,43 +339,78 @@ impl GithubExt for Github {
 
     #[tracing::instrument]
     async fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
+        tracing::debug!("Starting lines_changed for repos: {:?}", repos);
+
         let mut tasks = JoinSet::new();
         for repo in repos {
-            // uses Arc under the hood so it's fine to clone
+            let repo = repo.clone();
             let client = self.client.clone();
             let url = format!(
                 "{}/repos/{}/stats/contributors",
                 &self.configuration.github_url(),
                 repo
             );
-            let result = client.get(&url).send().await?;
-            let task = result.json::<Vec<ContributorActivity>>();
-            tasks.spawn(task);
-        }
-        let responses = tasks.join_all().await;
+            tracing::debug!("Requesting contributor stats from URL: {}", url);
 
-        let res = responses
-            .into_iter()
-            .filter_map(|res| res.ok())
-            .flatten()
-            .collect::<Vec<_>>()
-            .iter()
-            .fold((0, 0), |acc, activity| {
-                (
-                    acc.0
-                        + activity
-                            .weeks()
-                            .iter()
-                            .map(|week| week.added())
-                            .sum::<i64>(),
-                    acc.1
-                        + activity
-                            .weeks()
-                            .iter()
-                            .map(|week| week.deleted())
-                            .sum::<i64>(),
-                )
+            let client_clone = client.clone();
+            let url_clone = url.clone();
+            tasks.spawn(async move {
+                match client_clone.get(&url_clone).send().await {
+                    Ok(response) => match response.json::<Vec<ContributorActivity>>().await {
+                        Ok(data) => {
+                            tracing::debug!(
+                                "Successfully fetched contributor stats for repo {}",
+                                repo
+                            );
+                            Ok(data)
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to parse JSON for repo {}: {:?}", repo, e);
+                            Err(e)
+                        }
+                    },
+                    Err(e) => {
+                        tracing::error!("HTTP request failed for repo {}: {:?}", repo, e);
+                        Err(e)
+                    }
+                }
             });
+        }
+
+        let mut all_activities = Vec::new();
+        while let Some(res) = tasks.join_next().await {
+            match res {
+                Ok(Ok(contributors)) => {
+                    tracing::debug!("Fetched {} contributors", contributors.len());
+                    all_activities.extend(contributors);
+                }
+                Ok(Err(e)) => {
+                    tracing::error!("Task failed with error: {:?}", e);
+                }
+                Err(e) => {
+                    tracing::error!("Join error: {:?}", e);
+                }
+            }
+        }
+
+        let res = all_activities.iter().fold((0, 0), |acc, activity| {
+            (
+                acc.0
+                    + activity
+                        .weeks()
+                        .iter()
+                        .map(|week| week.added())
+                        .sum::<i64>(),
+                acc.1
+                    + activity
+                        .weeks()
+                        .iter()
+                        .map(|week| week.deleted())
+                        .sum::<i64>(),
+            )
+        });
+
+        tracing::info!("Total lines added: {}, deleted: {}", res.0, res.1);
 
         Ok(res)
     }
