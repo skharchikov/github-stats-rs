@@ -1,6 +1,9 @@
 name: Generate Stats Images
 
 on:
+  pull_request:
+    branches:
+      - master
   push:
     branches: [master]
   schedule:
@@ -56,3 +59,4 @@ jobs:
           git add .
           git commit -m 'Update generated files' || true
           git push
+
