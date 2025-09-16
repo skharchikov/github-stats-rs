@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Keep Cargo dependencies up to date
+  - package-ecosystem: cargo
+    directory: "/" # Location of Cargo.toml
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    rebase-strategy: auto
+    groups:
+      rust-dependencies:
+        patterns:
+          - "*"
+
+  # Keep GitHub Actions up to date
+  - package-ecosystem: github-actions
+    directory: "/" # Root of the repo
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    rebase-strategy: auto
+    groups:
+      github-actions:
+        patterns:
+          - "*"
