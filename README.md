@@ -11,6 +11,7 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 <img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/languages.svg#gh-light-mode-only" />
 </a>
 
+<!--
 ##### WIP: Animated contribution heatmap
 
 ---
@@ -18,6 +19,7 @@ GitHub Stats RS is a Rust application that generates GitHub statistics and visua
 <img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/contribution_grid.svg#gh-dark-mode-only" />
 <img src="https://github.com/callmestech/github-stats-rs/blob/master/resources/generated/contribution_grid.svg#gh-light-mode-only" />
 </a>
+-->
 
 ## Features
 
