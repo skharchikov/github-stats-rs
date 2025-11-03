@@ -87,10 +87,21 @@ impl GithubExt for Github {
             .unwrap_or_default();
 
         let mut result = vec![];
-        // why I can't use JoinSet here?
 
-        // I had an error when I tried to use JoinSet here, so I had to use a for loop
-        // temporary v
+        // why I can't use JoinSet here?
+        // error: temporary value dropped while borrowed
+        // let mut tasks = JoinSet::new();
+        //
+        // for variables in variables {
+        //     let task = post_graphql::<ContributionsByYear, _>(
+        //         &self.client,
+        //         &self.graphql_url(),
+        //         variables,
+        //     );
+        //     tasks.spawn(task);
+        // }
+        // let result = tasks.join_all().await;
+
         for variables in variables {
             let response = post_graphql::<ContributionsByYear, _>(
                 &self.client,
