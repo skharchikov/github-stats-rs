@@ -355,25 +355,43 @@ impl GithubExt for Github {
             let client_clone = client.clone();
             let url_clone = url.clone();
             tasks.spawn(async move {
-                match client_clone.get(&url_clone).send().await {
-                    Ok(response) => match response.json::<Vec<ContributorActivity>>().await {
-                        Ok(data) => {
-                            tracing::debug!(
-                                "Successfully fetched contributor stats for repo {}",
-                                repo
+                let result: anyhow::Result<Vec<ContributorActivity>> = async {
+                    let response = client_clone
+                        .get(&url_clone)
+                        .send()
+                        .await
+                        .map_err(|e| {
+                            tracing::error!("HTTP request failed for repo {}: {:?}", repo, e);
+                            anyhow::anyhow!("HTTP request failed for repo {}: {}", repo, e)
+                        })?;
+
+                    let status = response.status();
+                    let text = response.text().await.map_err(|e| {
+                        tracing::error!("Failed to get response text for repo {}: {:?}", repo, e);
+                        anyhow::anyhow!("Failed to get response text for repo {}: {}", repo, e)
+                    })?;
+
+                    let data = serde_json::from_str::<Vec<ContributorActivity>>(&text)
+                        .map_err(|e| {
+                            tracing::error!(
+                                "Failed to parse JSON for repo {} (status: {}): {:?}\nResponse body: {}",
+                                repo,
+                                status,
+                                e,
+                                text
                             );
-                            Ok(data)
-                        }
-                        Err(e) => {
-                            tracing::error!("Failed to parse JSON for repo {}: {:?}", repo, e);
-                            Err(e)
-                        }
-                    },
-                    Err(e) => {
-                        tracing::error!("HTTP request failed for repo {}: {:?}", repo, e);
-                        Err(e)
-                    }
+                            anyhow::anyhow!("Failed to parse JSON for repo {}: {}", repo, e)
+                        })?;
+
+                    tracing::debug!(
+                        "Successfully fetched contributor stats for repo {}",
+                        repo
+                    );
+                    Ok(data)
                 }
+                .await;
+
+                result
             });
         }
 
