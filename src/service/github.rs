@@ -1,10 +1,12 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use anyhow::Result;
 use chrono::{DateTime, NaiveDate, TimeZone, Utc};
 use graphql_client::reqwest::post_graphql;
 use reqwest::Client;
 use tokio::task::JoinSet;
+use tokio::time::sleep;
 
 use crate::{
     algebra::GithubExt,
@@ -341,7 +343,10 @@ impl GithubExt for Github {
     async fn lines_changed(&self, repos: &[String]) -> Result<(i64, i64)> {
         tracing::debug!("Starting lines_changed for repos: {:?}", repos);
 
+        // Limit concurrent requests to avoid overwhelming the API
+        let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(5));
         let mut tasks = JoinSet::new();
+
         for repo in repos {
             let repo = repo.clone();
             let client = self.client.clone();
@@ -352,42 +357,115 @@ impl GithubExt for Github {
             );
             tracing::debug!("Requesting contributor stats from URL: {}", url);
 
-            let client_clone = client.clone();
-            let url_clone = url.clone();
+            let semaphore = semaphore.clone();
             tasks.spawn(async move {
+                // Acquire semaphore permit to limit concurrency
+                let _permit = semaphore.acquire().await.unwrap();
+
                 let result: anyhow::Result<Vec<ContributorActivity>> = async {
-                    let response = client_clone
-                        .get(&url_clone)
-                        .send()
-                        .await
-                        .map_err(|e| {
-                            tracing::error!("HTTP request failed for repo {}: {:?}", repo, e);
-                            anyhow::anyhow!("HTTP request failed for repo {}: {}", repo, e)
-                        })?;
+                    // Retry logic with exponential backoff
+                    let max_retries = 3;
+                    let mut retry_count = 0;
 
-                    let status = response.status();
-                    let text = response.text().await.map_err(|e| {
-                        tracing::error!("Failed to get response text for repo {}: {:?}", repo, e);
-                        anyhow::anyhow!("Failed to get response text for repo {}: {}", repo, e)
-                    })?;
+                    loop {
+                        let response = client
+                            .get(&url)
+                            .send()
+                            .await
+                            .map_err(|e| {
+                                tracing::error!("HTTP request failed for repo {}: {:?}", repo, e);
+                                anyhow::anyhow!("HTTP request failed for repo {}: {}", repo, e)
+                            })?;
 
-                    let data = serde_json::from_str::<Vec<ContributorActivity>>(&text)
-                        .map_err(|e| {
-                            tracing::error!(
-                                "Failed to parse JSON for repo {} (status: {}): {:?}\nResponse body: {}",
-                                repo,
-                                status,
-                                e,
-                                text
-                            );
-                            anyhow::anyhow!("Failed to parse JSON for repo {}: {}", repo, e)
-                        })?;
+                        let status = response.status();
 
-                    tracing::debug!(
-                        "Successfully fetched contributor stats for repo {}",
-                        repo
-                    );
-                    Ok(data)
+                        // Handle different status codes
+                        match status.as_u16() {
+                            200 => {
+                                // Success - parse the response
+                                let text = response.text().await.map_err(|e| {
+                                    tracing::error!("Failed to get response text for repo {}: {:?}", repo, e);
+                                    anyhow::anyhow!("Failed to get response text for repo {}: {}", repo, e)
+                                })?;
+
+                                let data = serde_json::from_str::<Vec<ContributorActivity>>(&text)
+                                    .map_err(|e| {
+                                        tracing::error!(
+                                            "Failed to parse JSON for repo {} (status: {}): {:?}\nResponse body: {}",
+                                            repo,
+                                            status,
+                                            e,
+                                            text
+                                        );
+                                        anyhow::anyhow!("Failed to parse JSON for repo {}: {}", repo, e)
+                                    })?;
+
+                                tracing::debug!(
+                                    "Successfully fetched contributor stats for repo {}",
+                                    repo
+                                );
+                                return Ok(data);
+                            }
+                            202 => {
+                                // Stats are being computed - retry after delay
+                                if retry_count < max_retries {
+                                    let delay = Duration::from_secs(2u64.pow(retry_count));
+                                    tracing::warn!(
+                                        "Stats being computed for repo {} (202 response). Retrying in {:?} (attempt {}/{})",
+                                        repo,
+                                        delay,
+                                        retry_count + 1,
+                                        max_retries
+                                    );
+                                    retry_count += 1;
+                                    sleep(delay).await;
+                                    continue;
+                                } else {
+                                    tracing::error!(
+                                        "Max retries exceeded for repo {} - stats still being computed",
+                                        repo
+                                    );
+                                    return Ok(Vec::new()); // Return empty vec to continue with other repos
+                                }
+                            }
+                            403 | 429 => {
+                                // Rate limited
+                                let text = response.text().await.unwrap_or_default();
+                                tracing::error!(
+                                    "Rate limited for repo {} (status: {}): {}",
+                                    repo,
+                                    status,
+                                    text
+                                );
+                                return Err(anyhow::anyhow!(
+                                    "Rate limited for repo {}: {}",
+                                    repo,
+                                    text
+                                ));
+                            }
+                            404 => {
+                                // Repo not found or no stats available
+                                tracing::warn!("Repository not found or no stats: {} (404)", repo);
+                                return Ok(Vec::new());
+                            }
+                            _ => {
+                                // Other error statuses
+                                let text = response.text().await.unwrap_or_default();
+                                tracing::error!(
+                                    "Unexpected status {} for repo {}: {}",
+                                    status,
+                                    repo,
+                                    text
+                                );
+                                return Err(anyhow::anyhow!(
+                                    "HTTP {} for repo {}: {}",
+                                    status,
+                                    repo,
+                                    text
+                                ));
+                            }
+                        }
+                    }
                 }
                 .await;
 

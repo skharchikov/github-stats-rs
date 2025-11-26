@@ -4,6 +4,7 @@ use github_stats_rs::{
 };
 use reqwest::Client;
 use secrecy::ExposeSecret;
+use std::time::Duration;
 use tracing_subscriber::Registry;
 
 #[tokio::main]
@@ -15,6 +16,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let client = Client::builder()
         .user_agent("graphql-rust")
+        .timeout(Duration::from_secs(30))
+        .connect_timeout(Duration::from_secs(10))
         .default_headers(
             std::iter::once((
                 reqwest::header::AUTHORIZATION,
