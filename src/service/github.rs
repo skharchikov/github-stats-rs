@@ -290,7 +290,7 @@ impl GithubExt for Github {
         }
         // sort languages by size and take top N languages as defined in configuration
         let mut languages = languages_map.into_iter().collect::<Vec<_>>();
-        languages.sort_by(|a, b| b.1.size().cmp(&a.1.size()));
+        languages.sort_by_key(|b| std::cmp::Reverse(b.1.size()));
         languages = languages
             .into_iter()
             .take(self.configuration.languages_limit())
