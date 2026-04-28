@@ -135,7 +135,7 @@ div.ellipsis {
 
 <div>
 <span class="progress">
-<span style="background-color: #dea584; width: 54.45%;" class="progress-item"></span><span style="background-color: #3178c6; width: 13.80%;" class="progress-item"></span><span style="background-color: #c22d40; width: 13.56%;" class="progress-item"></span><span style="background-color: #3572A5; width: 4.47%;" class="progress-item"></span><span style="background-color: #b07219; width: 4.16%;" class="progress-item"></span><span style="background-color: #e34c26; width: 4.05%;" class="progress-item"></span><span style="background-color: #555555; width: 1.68%;" class="progress-item"></span><span style="background-color: #663399; width: 1.42%;" class="progress-item"></span><span style="background-color: #89e051; width: 0.71%;" class="progress-item"></span><span style="background-color: #f1e05a; width: 0.48%;" class="progress-item"></span>
+<span style="background-color: #dea584; width: 54.47%;" class="progress-item"></span><span style="background-color: #3178c6; width: 13.79%;" class="progress-item"></span><span style="background-color: #c22d40; width: 13.56%;" class="progress-item"></span><span style="background-color: #3572A5; width: 4.47%;" class="progress-item"></span><span style="background-color: #b07219; width: 4.16%;" class="progress-item"></span><span style="background-color: #e34c26; width: 4.05%;" class="progress-item"></span><span style="background-color: #555555; width: 1.68%;" class="progress-item"></span><span style="background-color: #663399; width: 1.42%;" class="progress-item"></span><span style="background-color: #89e051; width: 0.71%;" class="progress-item"></span><span style="background-color: #f1e05a; width: 0.48%;" class="progress-item"></span>
 </span>
 </div>
 
@@ -146,7 +146,7 @@ div.ellipsis {
 viewBox="0 0 16 16" version="1.1" width="16" height="16"><path
 fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 <span class="lang">Rust</span>
-<span class="percent">54.45%</span>
+<span class="percent">54.47%</span>
 </li>
 
             <li style="animation-delay: 150ms;">
@@ -154,7 +154,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 viewBox="0 0 16 16" version="1.1" width="16" height="16"><path
 fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 <span class="lang">TypeScript</span>
-<span class="percent">13.80%</span>
+<span class="percent">13.79%</span>
 </li>
 
             <li style="animation-delay: 300ms;">
