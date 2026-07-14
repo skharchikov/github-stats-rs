@@ -327,7 +327,7 @@ impl GithubExt for Github {
                 .client
                 .get(format!(
                     "{}/repos/{}/traffic/views",
-                    &self.configuration.github_url(),
+                    self.configuration.github_url(),
                     repo
                 ))
                 .send()
@@ -352,7 +352,7 @@ impl GithubExt for Github {
             let client = self.client.clone();
             let url = format!(
                 "{}/repos/{}/stats/contributors",
-                &self.configuration.github_url(),
+                self.configuration.github_url(),
                 repo
             );
             tracing::debug!("Requesting contributor stats from URL: {}", url);

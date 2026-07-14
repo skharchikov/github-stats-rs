@@ -48,7 +48,7 @@ impl ImageGenExt for ImageGen {
             let progress_tmp = format!(
                 r#"<span style="background-color: {}; width: {}%;" class="progress-item"></span>"#,
                 data.color(),
-                &proportion
+                proportion
             );
 
             let lang_list_tmp = format!(
@@ -64,7 +64,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
                 150 * idx,
                 data.color(),
                 language,
-                &proportion
+                proportion
             );
             progress.push_str(&progress_tmp);
             lang_list.push_str(&lang_list_tmp);
